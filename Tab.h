@@ -5,6 +5,7 @@
 #include <windows.h>
 #include <commctrl.h>
 
+#include "Common.h"
 #include "Resource.h"
 
 #include "ControlWindow.h"
@@ -39,8 +40,6 @@
 #define SYSTEM_MENU_ABOUT_ITEM_TEXT												"About"
 
 #define FIRST_CONTROL_WINDOW_ID													WM_USER
-
-#define STRING_LENGTH															2048
 
 #define ABOUT_MESSAGE_TEXT														"Tab\r\n"							\
 																				"\r\n"								\

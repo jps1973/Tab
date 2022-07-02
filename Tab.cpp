@@ -132,8 +132,11 @@ void ShowControlWindow( HWND hWnd, int nWhichTab )
 	{
 		// Successfully got control window
 
+		// Invalidate entire window
+		InvalidateRect( hWnd, NULL, TRUE );
+
 		// Show control window
-		ShowWindow( hWndControl,SW_SHOW );
+		ShowWindow( hWndControl, SW_SHOW );
 
 		// Resize active control window
 		ResizeActiveControlWindow( hWnd );
@@ -160,7 +163,7 @@ void OnTabSelectionChange( HWND hWnd )
 
 } // End of function OnTabSelectionChange
 
-int CreateTab( HWND hWnd, LPCTSTR lpszTab )
+int CreateTab( HWND hWnd, LPCTSTR lpszFolderPath )
 {
 	int nResult = -1;
 
@@ -173,7 +176,7 @@ int CreateTab( HWND hWnd, LPCTSTR lpszTab )
 	// Initialise tab control item structure
 	tcItem.mask			= ( TCIF_TEXT | TCIF_PARAM );
 	tcItem.cchTextMax	= STRING_LENGTH;
-	tcItem.pszText		= ( LPTSTR )lpszTab;
+	tcItem.pszText		= ( LPTSTR )lpszFolderPath;
 	tcItem.lParam		= g_nNextControlWindowID;
 
 	// Count tabs
@@ -186,15 +189,19 @@ int CreateTab( HWND hWnd, LPCTSTR lpszTab )
 	if( nResult >= 0 )
 	{
 		// Successfully inserted tab
+		HWND hWndControl;
 
 		// Create control window
-		ControlWindowCreate( hWnd, g_nNextControlWindowID );
+		hWndControl = ControlWindowCreate( hWnd, g_nNextControlWindowID );
 
 		// Select tab
 		SendMessage( g_hWndTab, TCM_SETCURSEL, ( WPARAM )nResult, ( LPARAM )NULL );
 
 		// Call the tab selection change function
 		OnTabSelectionChange( hWnd );
+
+		// Populate control window
+		ControlWindowPopulate( hWndControl, lpszFolderPath, ALL_FILES_FILTER );
 
 		// Update next control window id
 		g_nNextControlWindowID ++;
@@ -343,11 +350,17 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 			if( g_hWndTab )
 			{
 				// Successfully created tab window
+				HFONT hFont;
+
+				// Get font
+				hFont = ( HFONT )GetStockObject( DEFAULT_GUI_FONT );
+
+				// Set tab window font
+				SendMessage( g_hWndTab, WM_SETFONT, ( WPARAM )hFont, ( LPARAM )TRUE );
 
 				// Create tabs
-				CreateTab( hWnd, "Tab 1" );
-				CreateTab( hWnd, "Tab 2" );
-				CreateTab( hWnd, "Tab 3" );
+				CreateTab( hWnd, "C:\\" );
+				CreateTab( hWnd, "D:\\" );
 
 				// Show tab window
 				ShowWindow( g_hWndTab, SW_SHOW );
@@ -435,7 +448,14 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 					// A tab new command
 
 					// Create new tab
-					CreateTab( hWnd, "qwerty" );
+					CreateTab( hWnd, "U:\\" );
+InvalidateRect( hWnd, NULL, TRUE );
+SendMessage( hWnd, WM_PAINT, ( WPARAM )NULL, ( LPARAM )NULL );
+				// Show tab window
+				ShowWindow( g_hWndTab, SW_SHOW );
+
+				// Update tab window
+				UpdateWindow( g_hWndTab );
 
 					// Break out of switch
 					break;

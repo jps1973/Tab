@@ -54,6 +54,37 @@ int GetControlWindowID( int nWhichTab )
 
 } // End of function GetControlWindowID
 
+int PopulateControlWindow( HWND hWnd, int nWhichTab, LPCTSTR lpszFolderPath )
+{
+	int nResult = 0;
+
+	int nControlWindowID;
+	HWND hWndControl;
+	TCITEM tcItem;
+
+	// Get control window id
+	nControlWindowID = GetControlWindowID( nWhichTab );
+
+	// Get control window
+	hWndControl = GetDlgItem( hWnd, nControlWindowID );
+
+	// Populate control window
+	nResult = ControlWindowPopulate( hWndControl, lpszFolderPath, ALL_FILES_FILTER );
+
+	// Clear tab control item structure
+	ZeroMemory( &tcItem, sizeof( tcItem ) );
+
+	// Initialise tab control item structure
+	tcItem.mask		= TCIF_TEXT;
+	tcItem.pszText	= ( LPTSTR )lpszFolderPath;
+
+	// Update tab control item
+	SendMessage( g_hWndTab, TCM_SETITEM, ( WPARAM )nWhichTab, ( LPARAM )&tcItem );
+
+	return nResult;
+
+} // End of function PopulateControlWindow
+
 void ResizeActiveControlWindow( HWND hWnd )
 {
 	RECT rcTab;
@@ -161,6 +192,12 @@ void OnTabSelectionChange( HWND hWnd )
 	// Show selected control window
 	ShowControlWindow( hWnd, nSelected );
 
+	// Invalidate entire window
+	InvalidateRect( hWnd, NULL, TRUE );
+
+	// Repaint window
+	SendMessage( hWnd, WM_PAINT, ( WPARAM )NULL, ( LPARAM )NULL );
+
 } // End of function OnTabSelectionChange
 
 int CreateTab( HWND hWnd, LPCTSTR lpszFolderPath )
@@ -189,10 +226,9 @@ int CreateTab( HWND hWnd, LPCTSTR lpszFolderPath )
 	if( nResult >= 0 )
 	{
 		// Successfully inserted tab
-		HWND hWndControl;
 
 		// Create control window
-		hWndControl = ControlWindowCreate( hWnd, g_nNextControlWindowID );
+		ControlWindowCreate( hWnd, g_nNextControlWindowID );
 
 		// Select tab
 		SendMessage( g_hWndTab, TCM_SETCURSEL, ( WPARAM )nResult, ( LPARAM )NULL );
@@ -200,8 +236,15 @@ int CreateTab( HWND hWnd, LPCTSTR lpszFolderPath )
 		// Call the tab selection change function
 		OnTabSelectionChange( hWnd );
 
-		// Populate control window
-		ControlWindowPopulate( hWndControl, lpszFolderPath, ALL_FILES_FILTER );
+		// Ensure that folder path is valid
+		if( lpszFolderPath )
+		{
+			// Folder path is valid
+
+			// Populate control window
+			PopulateControlWindow( hWnd, nTabCount, lpszFolderPath );
+
+		} // End of solder path is valid
 
 		// Update next control window id
 		g_nNextControlWindowID ++;
@@ -332,13 +375,9 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 		{
 			// A create message
 			HINSTANCE hInstance;
-			HFONT hFont;
 
 			// Get instance
 			hInstance = ( ( LPCREATESTRUCT )lParam )->hInstance;
-
-			// Get font
-			hFont = ( HFONT )GetStockObject( DEFAULT_GUI_FONT );
 
 			// Initialise common controls
 			InitCommonControls();
@@ -357,10 +396,6 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 
 				// Set tab window font
 				SendMessage( g_hWndTab, WM_SETFONT, ( WPARAM )hFont, ( LPARAM )TRUE );
-
-				// Create tabs
-				CreateTab( hWnd, "C:\\" );
-				CreateTab( hWnd, "D:\\" );
 
 				// Show tab window
 				ShowWindow( g_hWndTab, SW_SHOW );
@@ -416,6 +451,9 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 			// Resize active control window
 			ResizeActiveControlWindow( hWnd );
 
+			// Invalidate entire window
+			InvalidateRect( hWnd, NULL, TRUE );
+
 			// Break out of switch
 			break;
 
@@ -449,13 +487,6 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 
 					// Create new tab
 					CreateTab( hWnd, "U:\\" );
-InvalidateRect( hWnd, NULL, TRUE );
-SendMessage( hWnd, WM_PAINT, ( WPARAM )NULL, ( LPARAM )NULL );
-				// Show tab window
-				ShowWindow( g_hWndTab, SW_SHOW );
-
-				// Update tab window
-				UpdateWindow( g_hWndTab );
 
 					// Break out of switch
 					break;
@@ -685,6 +716,9 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow )
 			// Successfully created window
 			HMENU hMenuSystem;
 
+			// Allocate string memory
+			LPTSTR lpszFolderPath = new char[ STRING_LENGTH ];
+
 			// Get system menu
 			hMenuSystem = GetSystemMenu( hWnd, FALSE );
 
@@ -694,11 +728,22 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow )
 			// Add about item to system menu
 			InsertMenu( hMenuSystem, SYSTEM_MENU_ABOUT_ITEM_POSITION, MF_BYPOSITION, IDM_HELP_ABOUT, SYSTEM_MENU_ABOUT_ITEM_TEXT );
 
+			// Create (empty) first tab
+			CreateTab( hWnd, NULL );
+			// Just create an empty tab for now, wo that the window will display correctly
+			// Tab will be populated once the window has been displayed
+
 			// Show window
 			ShowWindow( hWnd, nCmdShow );
 
 			// Update window
 			UpdateWindow( hWnd );
+
+			// Get current folder path
+			GetCurrentDirectory( STRING_LENGTH, lpszFolderPath );
+
+			// Populate control window
+			PopulateControlWindow( hWnd, 0, lpszFolderPath );
 
 			// Message loop
 			while( GetMessage( &msg, NULL, 0, 0 ) > 0 )
@@ -710,6 +755,9 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow )
 				DispatchMessage( &msg );
 
 			}; // End of message loop
+
+			// Free string memory
+			delete [] lpszFolderPath;
 
 		} // End of successfully created window
 		else

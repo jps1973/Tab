@@ -65,6 +65,49 @@ HWND ControlWindowCreate( HWND hWndParent, int nID )
 
 } // End of function ControlWindowCreate
 
+BOOL ControlWindowGetItemPath( HWND hWndControl, int nWhichItem, LPCTSTR lpszParentFolderPath, LPTSTR lpszItemPath )
+{
+	BOOL bResult = FALSE;
+
+	LVITEM lvItem;
+
+	// Copy parent folder path into item path
+	lstrcpy( lpszItemPath, lpszParentFolderPath );
+
+	// Ensure that item path ends with a back-slash
+	if( lpszItemPath[ lstrlen( lpszItemPath ) - sizeof( char ) ] != ASCII_BACK_SLASH_CHARACTER )
+	{
+		// Item path does not end with a back-slash
+
+		// Append a back-slash onto item path
+		lstrcat( lpszItemPath, ASCII_BACK_SLASH_STRING );
+
+	} // End of item path does not end with a back-slash
+
+	// Clear list view item structure
+	ZeroMemory( &lvItem, sizeof( lvItem ) );
+
+	// Initialise list view item structure
+	lvItem.mask			= LVIF_TEXT;
+	lvItem.iItem		= nWhichItem;
+	lvItem.iSubItem		= NAME_COLUMN_ID;
+	lvItem.pszText		= ( lpszItemPath + lstrlen( lpszItemPath ) );
+	lvItem.cchTextMax	= STRING_LENGTH;
+
+	// Get item text
+	if( SendMessage( hWndControl, LVM_GETITEMTEXT, ( WPARAM )lvItem.iItem, ( LPARAM )&lvItem ) )
+	{
+		// Successfully got item text
+
+		// Update return value
+		bResult = TRUE;
+
+	} // End of successfully got item text
+
+	return bResult;
+
+} // End of function ControlWindowMove
+
 BOOL ControlWindowMove( HWND hWndParent, int nID, int nX, int nY, int nWidth, int nHeight )
 {
 	BOOL bResult = FALSE;

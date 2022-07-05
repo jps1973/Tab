@@ -75,8 +75,9 @@ int PopulateControlWindow( HWND hWnd, int nWhichTab, LPCTSTR lpszFolderPath )
 	ZeroMemory( &tcItem, sizeof( tcItem ) );
 
 	// Initialise tab control item structure
-	tcItem.mask		= TCIF_TEXT;
-	tcItem.pszText	= ( LPTSTR )lpszFolderPath;
+	tcItem.mask			= TCIF_TEXT;
+	tcItem.cchTextMax	= STRING_LENGTH;
+	tcItem.pszText		= ( LPTSTR )lpszFolderPath;
 
 	// Update tab control item
 	SendMessage( g_hWndTab, TCM_SETITEM, ( WPARAM )nWhichTab, ( LPARAM )&tcItem );
@@ -88,7 +89,7 @@ int PopulateControlWindow( HWND hWnd, int nWhichTab, LPCTSTR lpszFolderPath )
 void ResizeActiveControlWindow( HWND hWnd )
 {
 	RECT rcTab;
-	int nSelected;
+	int nWhichTab;
 	int nControlWindowWidth;
 	int nControlWindowHeight;
 	int nControlWindowID;
@@ -100,10 +101,10 @@ void ResizeActiveControlWindow( HWND hWnd )
 	SendMessage( g_hWndTab, TCM_ADJUSTRECT, ( WPARAM )FALSE, ( LPARAM )&rcTab );
 
 	// Get selected tab
-	nSelected = SendMessage( g_hWndTab, TCM_GETCURSEL, ( WPARAM )NULL, ( LPARAM )NULL );
+	nWhichTab = SendMessage( g_hWndTab, TCM_GETCURSEL, ( WPARAM )NULL, ( LPARAM )NULL );
 
 	// Get control window id
-	nControlWindowID = GetControlWindowID( nSelected );
+	nControlWindowID = GetControlWindowID( nWhichTab );
 
 	// Calculate control window size
 	nControlWindowWidth		= ( rcTab.right - rcTab.left );
@@ -191,6 +192,9 @@ void OnTabSelectionChange( HWND hWnd )
 
 	// Show selected control window
 	ShowControlWindow( hWnd, nSelected );
+
+	// Clear status bar window
+	SendMessage( g_hWndStatusBar, SB_SETTEXT, ( WPARAM )NULL, ( LPARAM )NULL );
 
 	// Invalidate entire window
 	InvalidateRect( hWnd, NULL, TRUE );
@@ -583,12 +587,142 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 		{
 			// A notify message
 			LPNMHDR lpNmHdr;
+			int nWhichTab;
+			int nControlWindowID;
+			HWND hWndControl;
+
+			// Get selected tab
+			nWhichTab = SendMessage( g_hWndTab, TCM_GETCURSEL, ( WPARAM )NULL, ( LPARAM )NULL );
+
+			// Get control window id
+			nControlWindowID = GetControlWindowID( nWhichTab );
+
+			// Get control window
+			hWndControl = GetDlgItem( hWnd, nControlWindowID );
 
 			// Get notify message handler
 			lpNmHdr = ( ( LPNMHDR )lParam );
 
-			// See if notify message is from tab window
-			if( lpNmHdr->hwndFrom == g_hWndTab )
+			// See if notify message is from control window
+			if( lpNmHdr->hwndFrom == hWndControl )
+			{
+				// Notify message is from control window
+				LPNMLISTVIEW lpNmListView;
+
+				// Get list view notification message information
+				lpNmListView = ( ( LPNMLISTVIEW )lpNmHdr );
+
+				// Select notify message
+				switch( lpNmHdr->code )
+				{
+					case NM_DBLCLK:
+					{
+						// A double click notification
+						TCITEM tcItem;
+
+						// Allocate string memory
+						LPTSTR lpszParentFolderPath	= new char[ STRING_LENGTH ];
+						LPTSTR lpszItemPath			= new char[ STRING_LENGTH ];
+
+						// Clear tab control item structure
+						ZeroMemory( &tcItem, sizeof( tcItem ) );
+
+						// Initialise tab control item structure
+						tcItem.mask			= TCIF_TEXT;
+						tcItem.cchTextMax	= STRING_LENGTH;
+						tcItem.pszText		= ( LPTSTR )lpszParentFolderPath;
+
+						// Get tab control item
+						SendMessage( g_hWndTab, TCM_GETITEM, ( WPARAM )nWhichTab, ( LPARAM )&tcItem );
+
+						// Get item path
+						if( ControlWindowGetItemPath( hWndControl, lpNmListView->iItem, lpszParentFolderPath, lpszItemPath ) )
+						{
+							// Successfully got item path
+
+							// Execute item
+							if( !( ShellExecute( NULL, SHELL_EXECUTE_OPEN_COMMAND, lpszItemPath, NULL, NULL, SW_SHOW ) ) )
+							{
+								// Unable to execute item
+
+								// Allocate string mmory
+								LPTSTR lpszError = new char[ STRING_LENGTH ];
+
+								// Format error message
+								wsprintf( lpszError, UNABLE_TO_OPEN_ERROR_MESSAGE_FORMAT_STRING, lpszItemPath );
+
+								// Display error message
+								MessageBox( hWnd, lpszError, ERROR_MESSAGE_CAPTION, ( MB_OK | MB_ICONERROR ) );
+
+								// Free string memory
+								delete [] lpszError;
+
+							} // End of unable to execute item
+
+						} // End of successfully got item path
+
+						// Free string memory
+						delete [] lpszParentFolderPath;
+						delete [] lpszItemPath;
+
+						// Break out of switch
+						break;
+
+					} // End of a double click notification
+					case LVN_ITEMCHANGED:
+					{
+						// An item changed notification
+						TCITEM tcItem;
+
+						// Allocate string memory
+						LPTSTR lpszParentFolderPath	= new char[ STRING_LENGTH ];
+						LPTSTR lpszItemPath			= new char[ STRING_LENGTH ];
+
+						// Clear tab control item structure
+						ZeroMemory( &tcItem, sizeof( tcItem ) );
+
+						// Initialise tab control item structure
+						tcItem.mask			= TCIF_TEXT;
+						tcItem.cchTextMax	= STRING_LENGTH;
+						tcItem.pszText		= ( LPTSTR )lpszParentFolderPath;
+
+						// Get tab control item
+						SendMessage( g_hWndTab, TCM_GETITEM, ( WPARAM )nWhichTab, ( LPARAM )&tcItem );
+
+						// Get item path
+						if( ControlWindowGetItemPath( hWndControl, lpNmListView->iItem, lpszParentFolderPath, lpszItemPath ) )
+						{
+							// Successfully got item path
+
+							// Show item path on status bar window
+							SendMessage( g_hWndStatusBar, SB_SETTEXT, ( WPARAM )NULL, ( LPARAM )lpszItemPath );
+
+						} // End of successfully got item path
+
+						// Free string memory
+						delete [] lpszParentFolderPath;
+						delete [] lpszItemPath;
+
+						// Break out of switch
+						break;
+
+					} // End of an item changed notification
+					default:
+					{
+						// Default notify message
+
+						// Call default procedure
+						lr = DefWindowProc( hWnd, uMsg, wParam, lParam);
+
+						// Break out of switch
+						break;
+
+					} // End of default notify message
+
+				}; // End of selection for notify message
+
+			} // End of notify message is from control window
+			else if( lpNmHdr->hwndFrom == g_hWndTab )
 			{
 				// Notify message is from tab window
 

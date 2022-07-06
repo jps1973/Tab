@@ -31,6 +31,38 @@ int ShowAboutMessage( HWND hWnd )
 
 } // End of function ShowAboutMessage
 
+void UpdateMenuItems( HWND hWnd )
+{
+	int nTabCount;
+
+	HMENU hMenu;
+
+	// Get menu
+	hMenu = GetMenu( hWnd );
+
+	// Count tabs
+	nTabCount = SendMessage( g_hWndTab, TCM_GETITEMCOUNT, ( WPARAM )NULL, ( LPARAM )NULL );
+
+	// See how many tabs there are
+	if( nTabCount == 1 )
+	{
+		// There is only one tab
+
+		// Disable close tab menu item
+		EnableMenuItem( hMenu, IDM_FILE_CLOSE_TAB, MF_GRAYED );
+
+	} // End of there is only one tab
+	else
+	{
+		// There is more than one tab
+
+		// Enable close tab menu item
+		EnableMenuItem( hMenu, IDM_FILE_CLOSE_TAB, MF_ENABLED );
+
+	} // End of there is more than one tab
+
+} // End of function UpdateMenuItems
+
 int GetControlWindowID( int nWhichTab )
 {
 	int nResult = 0;
@@ -248,10 +280,13 @@ int CreateTab( HWND hWnd, LPCTSTR lpszFolderPath )
 			// Populate control window
 			PopulateControlWindow( hWnd, nTabCount, lpszFolderPath );
 
-		} // End of solder path is valid
+		} // End of folder path is valid
 
 		// Update next control window id
 		g_nNextControlWindowID ++;
+
+		// Update menu items
+		UpdateMenuItems( hWnd );
 
 	} // End of successfully inserted tab
 
@@ -337,6 +372,9 @@ BOOL CloseTab( HWND hWnd, int nWhichTab )
 				OnTabSelectionChange( hWnd );
 
 			} // End of there are tabs
+
+			// Update menu items
+			UpdateMenuItems( hWnd );
 
 		} // End of user wants to close tab
 
@@ -485,20 +523,49 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 			// Select command
 			switch( LOWORD( wParam ) )
 			{
-				case IDM_TAB_NEW:
+				case IDM_FILE_NEW_TAB:
 				{
-					// A tab new command
+					// A file new tab command
+					TCITEM tcItem;
+					int nWhichTab;
 
-					// Create new tab
-					CreateTab( hWnd, "U:\\" );
+					// Allocate string memory
+					LPTSTR lpszFolderPath = new char[ STRING_LENGTH ];
+
+					// Clear tab control item structure
+					ZeroMemory( &tcItem, sizeof( tcItem ) );
+
+					// Initialise tab control item structure
+					tcItem.mask			= TCIF_TEXT;
+					tcItem.cchTextMax	= STRING_LENGTH;
+					tcItem.pszText		= ( LPTSTR )lpszFolderPath;
+
+					// Get selected tab
+					nWhichTab = SendMessage( g_hWndTab, TCM_GETCURSEL, ( WPARAM )NULL, ( LPARAM )NULL );
+
+					// Get tab control item to (get folder path)
+					SendMessage( g_hWndTab, TCM_GETITEM, ( WPARAM )nWhichTab, ( LPARAM )&tcItem );
+
+					// Browse for folder
+					if( BrowseForFolder( hWnd, lpszFolderPath ) )
+					{
+						// Successfully browsed for folder
+
+						// Create new tab
+						CreateTab( hWnd, lpszFolderPath );
+
+					} // End of successfully browsed for folder
+
+					// Free string memory
+					delete [] lpszFolderPath;
 
 					// Break out of switch
 					break;
 
-				} // End of a tab new command
-				case IDM_TAB_CLOSE:
+				} // End of a file new tab command
+				case IDM_FILE_CLOSE_TAB:
 				{
-					// A tab close command
+					// A file close tab command
 
 					// Close tab
 					CloseTab( hWnd );
@@ -506,7 +573,47 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 					// Break out of switch
 					break;
 
-				} // End of a tab close command
+				} // End of a file close tab command
+				case IDM_FILE_SELECT_TAB_FOLDER:
+				{
+					// A file select tab folder command
+					TCITEM tcItem;
+					int nWhichTab;
+
+					// Allocate string memory
+					LPTSTR lpszFolderPath = new char[ STRING_LENGTH ];
+
+					// Clear tab control item structure
+					ZeroMemory( &tcItem, sizeof( tcItem ) );
+
+					// Initialise tab control item structure
+					tcItem.mask			= TCIF_TEXT;
+					tcItem.cchTextMax	= STRING_LENGTH;
+					tcItem.pszText		= ( LPTSTR )lpszFolderPath;
+
+					// Get selected tab
+					nWhichTab = SendMessage( g_hWndTab, TCM_GETCURSEL, ( WPARAM )NULL, ( LPARAM )NULL );
+
+					// Get tab control item to (get folder path)
+					SendMessage( g_hWndTab, TCM_GETITEM, ( WPARAM )nWhichTab, ( LPARAM )&tcItem );
+
+					// Browse for folder
+					if( BrowseForFolder( hWnd, lpszFolderPath ) )
+					{
+						// Successfully browsed for folder
+
+						// Populate control window
+						PopulateControlWindow( hWnd, nWhichTab, lpszFolderPath );
+
+					} // End of successfully browsed for folder
+
+					// Free string memory
+					delete [] lpszFolderPath;
+
+					// Break out of switch
+					break;
+
+				} // End of a file select tab folder command
 				case IDM_FILE_EXIT:
 				{
 					// A file exit command

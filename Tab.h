@@ -8,6 +8,7 @@
 #include "Common.h"
 #include "Resource.h"
 
+#include "BrowseForFolder.h"
 #include "ControlWindow.h"
 
 #define MAIN_WINDOW_CLASS_NAME													"Main Tab Window Class"

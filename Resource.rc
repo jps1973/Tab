@@ -16,13 +16,11 @@ IDR_MAIN_MENU MENU
 	BEGIN
 	POPUP "&File"
 	BEGIN
-		MENUITEM "Exit",														IDM_FILE_EXIT
-	END
-	POPUP "&Tab"
-	BEGIN
-		MENUITEM "New",															IDM_TAB_NEW
+		MENUITEM "New Tab",														IDM_FILE_NEW_TAB
+		MENUITEM "Close Tab",													IDM_FILE_CLOSE_TAB
+		MENUITEM "Select Tab Folder",											IDM_FILE_SELECT_TAB_FOLDER
 		MENUITEM SEPARATOR
-		MENUITEM "Close",														IDM_TAB_CLOSE
+		MENUITEM "Exit",														IDM_FILE_EXIT
 	END
 	POPUP "&Help"
 	BEGIN

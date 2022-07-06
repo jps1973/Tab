@@ -8,7 +8,8 @@
 #define IDR_MAIN_MENU															200
 #define IDR_CONTEXT_MENU														300
 
+#define IDM_FILE_NEW_TAB														1001
+#define IDM_FILE_CLOSE_TAB														1002
+#define IDM_FILE_SELECT_TAB_FOLDER												1003
 #define IDM_FILE_EXIT															1009
-#define IDM_TAB_NEW																2001
-#define IDM_TAB_CLOSE															2002
 #define IDM_HELP_ABOUT															9001

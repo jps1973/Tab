@@ -185,6 +185,9 @@ int ControlWindowPopulate( HWND hWndControl, LPCTSTR lpszFolderPath, LPCTSTR lps
 		lvItem.iItem		= 0;
 		lvItem.iSubItem		= NAME_COLUMN_ID;
 
+		// Delete all items
+		SendMessage( hWndControl, LVM_DELETEALLITEMS, ( WPARAM )NULL, ( LPARAM )NULL );
+
 		// Loop through all items
 		do
 		{

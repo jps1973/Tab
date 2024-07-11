@@ -101,6 +101,93 @@ BOOL TabWindowHandleCommandMessage( WPARAM wParam, LPARAM, void( *lpDoubleClickF
 
 } // End of function TabWindowHandleCommandMessage
 
+int TabWindowLoad( LPCTSTR lpszFileName )
+{
+	int nResult = -1;
+
+	HANDLE hFile;
+
+	// Open file
+	hFile = CreateFile( lpszFileName, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL );
+
+	// Ensure that file was opened
+	if( hFile != INVALID_HANDLE_VALUE )
+	{
+		// Successfully opened file
+		DWORD dwFileSize;
+
+		// Get file size
+		dwFileSize = GetFileSize( hFile, NULL );
+
+		// Ensure that file size was got
+		if( dwFileSize != INVALID_FILE_SIZE )
+		{
+			// Successfully got file size
+
+			// Allocate string memory
+			LPSTR lpszFileText = new char[ dwFileSize + sizeof( char ) ];
+
+			// Read file text
+			if( ReadFile( hFile, lpszFileText, dwFileSize, NULL, NULL ) )
+			{
+				// Successfully read file text
+				LPTSTR lpszTab;
+
+				// Terminate file text
+				lpszFileText[ dwFileSize ] = ( char )NULL;
+
+				// Get first tab in file text
+				lpszTab = strtok( lpszFileText, NEW_LINE_TEXT );
+
+				// Initialise return value
+				nResult = 0;
+
+				// Loop through all tabs in file text
+				while( lpszTab )
+				{
+					// Create new tab
+					if( TabWindowNewTab( lpszTab ) >= 0 )
+					{
+						// Successfully created new tab
+
+						// Update return value
+						nResult ++;
+
+						// Get next tab in file text
+						lpszTab = strtok( NULL, NEW_LINE_TEXT );
+
+					} // End of successfully created new tab
+					else
+					{
+						// Unable to create new tab
+
+						// Update return value
+						nResult = -1;
+
+						// Force exit from loop
+						lpszTab = NULL;
+
+					} // End of unable to create new tab
+
+				}; // End of loop through all tabs in file text
+
+			} // End of successfully read file text
+
+			// Free string memory
+			delete [] lpszFileText;
+
+		} // End of successfully got file size
+
+		// Close file
+		CloseHandle( hFile );
+
+	} // End of successfully opened file
+
+	return nResult;
+
+} // End of function TabWindowLoad
+
+
 BOOL TabWindowMove( int nX, int nY, int nWidth, int nHeight, BOOL bRepaint )
 {
 	// Move tab window

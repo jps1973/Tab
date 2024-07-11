@@ -389,10 +389,8 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE, LPTSTR, int nCmdShow )
 			// Update main window
 			UpdateWindow( hWndMain );
 
-			// Create tabs
-			TabWindowNewTab( "Tab 01" );
-			TabWindowNewTab( "Tab 02" );
-			TabWindowNewTab( "Tab 03" );
+			// Load tabs
+			TabWindowLoad( TAB_WINDOW_FILE_NAME );
 
 			// Message loop
 			while( GetMessage( &msg, NULL, 0, 0 ) > 0 )

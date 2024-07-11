@@ -16,6 +16,8 @@
 
 #define TAB_WINDOW_TITLE_FORMAT_STRING											"Tab %d"
 
+#define TAB_WINDOW_FILE_NAME													"Tabs.txt"
+
 BOOL IsTabWindow( HWND hWnd );
 
 BOOL TabWindowCreate( HWND hWndParent, HINSTANCE hInstance );
@@ -23,6 +25,8 @@ BOOL TabWindowCreate( HWND hWndParent, HINSTANCE hInstance );
 BOOL TabWindowGetRect( LPRECT lpRect );
 
 BOOL TabWindowHandleCommandMessage( WPARAM wParam, LPARAM lParam, void( *lpDoubleClickFunction )( LPCTSTR lpszItemText ), void( *lpSelectionChangedFunction )( LPCTSTR lpszItemText ) );
+
+int TabWindowLoad( LPCTSTR lpszFileName );
 
 BOOL TabWindowMove( int nX, int nY, int nWidth, int nHeight, BOOL bRepaint = TRUE );
 

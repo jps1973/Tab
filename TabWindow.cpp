@@ -5,6 +5,9 @@
 // Global variables
 HWND g_hWndTab;
 HINSTANCE g_hInstance;
+int g_nNumberOfTabs;
+int g_nNextTabNumber;
+
 
 BOOL IsTabWindow( HWND hWnd )
 {
@@ -51,45 +54,13 @@ BOOL TabWindowCreate( HWND hWndParent, HINSTANCE hInstance )
 		if( g_hWndTab )
 		{
 			// Successfully created tab window
-			TCITEM tabControlItem;
-			int nWhichTabItem;
 
-			// Allocate string memory
-			LPTSTR lpszTitle = new char[ STRING_LENGTH ];
-
-			// Clear tab control item structure
-			ZeroMemory( &tabControlItem, sizeof( tabControlItem ) );
-
-			// Initialise tab control item structure
-			tabControlItem.mask		= TCIF_TEXT;
-			tabControlItem.pszText	= lpszTitle;
+			// Initialise global variables
+			g_nNumberOfTabs		= 0;
+			g_nNextTabNumber	= 1;
 
 			// Update return value (assume success)
 			bResult = TRUE;
-
-			// Loop through tab control items
-			for ( nWhichTabItem = 0; nWhichTabItem < TAB_WINDOW_DAYS_IN_WEEK; nWhichTabItem ++ ) 
-			{
-				// Format title
-				wsprintf( lpszTitle, TAB_WINDOW_TITLE_FORMAT_STRING, nWhichTabItem );
-
-				// Insert tab control item
-				if( SendMessage( g_hWndTab, TCM_INSERTITEM, ( WPARAM )nWhichTabItem, ( LPARAM )&tabControlItem ) < 0 )
-				{
-					// Unable to insert tab control item
-
-					// Update return value
-					bResult = FALSE;
-
-					// Force exit from loop
-					nWhichTabItem = TAB_WINDOW_DAYS_IN_WEEK;
-
-				} // End of unable to insert tab control item
-
-			}; // End of loop through tab control items
-
-			// Free string memory
-			delete[] lpszTitle;
 
 		} // End of successfully initilised common controls
 
@@ -136,6 +107,37 @@ BOOL TabWindowMove( int nX, int nY, int nWidth, int nHeight, BOOL bRepaint )
 	return ::MoveWindow( g_hWndTab, nX, nY, nWidth, nHeight, bRepaint );
 
 } // End of function TabWindowMove
+
+int TabWindowNewTab( LPCTSTR lpszTitle )
+{
+	int nResult = -1;
+
+	TCITEM tabControlItem;
+
+	// Clear tab control item structure
+	ZeroMemory( &tabControlItem, sizeof( tabControlItem ) );
+
+	// Initialise tab control item structure
+	tabControlItem.mask		= TCIF_TEXT;
+	tabControlItem.pszText	= ( LPTSTR )lpszTitle;
+
+	// Insert tab control item
+	nResult = SendMessage( g_hWndTab, TCM_INSERTITEM, ( WPARAM )g_nNumberOfTabs, ( LPARAM )&tabControlItem );
+
+	// Ensure that tab control item was inserted
+	if( nResult >= 0 )
+	{
+		// Successfully inserted tab control item
+
+		// Update global variables
+		g_nNextTabNumber ++;
+		g_nNumberOfTabs ++;
+
+	} // End of successfully inserted tab control item
+
+	return nResult;
+
+} // End of function TabWindowNewTab
 
 HWND TabWindowSetFocus()
 {

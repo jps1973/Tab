@@ -14,8 +14,6 @@
 #define TAB_WINDOW_STYLE														( WS_CHILD | WS_CLIPSIBLINGS | WS_VISIBLE )
 #define TAB_WINDOW_TEXT															NULL
 
-#define TAB_WINDOW_DAYS_IN_WEEK													7
-#define TAB_WINDOW_IDS_SUNDAY													WM_USER
 #define TAB_WINDOW_TITLE_FORMAT_STRING											"Tab %d"
 
 BOOL IsTabWindow( HWND hWnd );
@@ -27,6 +25,8 @@ BOOL TabWindowGetRect( LPRECT lpRect );
 BOOL TabWindowHandleCommandMessage( WPARAM wParam, LPARAM lParam, void( *lpDoubleClickFunction )( LPCTSTR lpszItemText ), void( *lpSelectionChangedFunction )( LPCTSTR lpszItemText ) );
 
 BOOL TabWindowMove( int nX, int nY, int nWidth, int nHeight, BOOL bRepaint = TRUE );
+
+int TabWindowNewTab( LPCTSTR lpszTitle );
 
 HWND TabWindowSetFocus();
 

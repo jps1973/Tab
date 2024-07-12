@@ -35,3 +35,5 @@ int TabWindowNewTab( LPCTSTR lpszTitle );
 HWND TabWindowSetFocus();
 
 void TabWindowSetFont( HFONT hFont );
+
+BOOL TabWindowSize( LPARAM lParam );

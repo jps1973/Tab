@@ -64,12 +64,9 @@ LRESULT CALLBACK MainWndProc( HWND hWndMain, UINT uMessage, WPARAM wParam, LPARA
 		case WM_SIZE:
 		{
 			// A size message
-			int nClientWidth;
-			int nClientHeight;
 
-			// Store client width and height
-			nClientWidth	= ( int )LOWORD( lParam );
-			nClientHeight	= ( int )HIWORD( lParam );
+			// Size tab window
+			TabWindowSize( lParam );
 
 			// Break out of switch
 			break;

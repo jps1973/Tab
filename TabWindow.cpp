@@ -239,3 +239,29 @@ void TabWindowSetFont( HFONT hFont )
 	::SendMessage( g_hWndTab, WM_SETFONT, ( WPARAM )hFont, ( LPARAM )TRUE );
 
 } // End of function TabWindowSetFont
+
+BOOL TabWindowSize( LPARAM lParam )
+{
+	BOOL bResult = FALSE;
+
+	int nClientWidth;
+	int nClientHeight;
+
+	// Store client size
+	nClientWidth	= ( int )LOWORD( lParam );
+	nClientHeight	= ( int )HIWORD( lParam );
+
+
+	// Set tab window position
+	if( SetWindowPos( g_hWndTab, HWND_TOP, 0, 0, nClientWidth, nClientHeight, SWP_SHOWWINDOW ) )
+	{
+		// Successfully set tab window position
+
+		// Update return value
+		bResult = TRUE;
+
+	} // End of successfully set tab window position
+
+	return bResult;
+
+} // End of function TabWindowSize

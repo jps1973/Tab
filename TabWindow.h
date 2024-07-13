@@ -24,7 +24,7 @@ BOOL TabWindowCreate( HWND hWndParent, HINSTANCE hInstance );
 
 BOOL TabWindowGetRect( LPRECT lpRect );
 
-BOOL TabWindowHandleCommandMessage( WPARAM wParam, LPARAM lParam, void( *lpDoubleClickFunction )( LPCTSTR lpszItemText ), void( *lpSelectionChangedFunction )( LPCTSTR lpszItemText ) );
+BOOL TabWindowHandleNotifyMessage( WPARAM wParam, LPARAM lParam );
 
 int TabWindowLoad( LPCTSTR lpszFileName );
 

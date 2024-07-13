@@ -77,13 +77,73 @@ BOOL TabWindowGetRect( LPRECT lpRect )
 
 } // End of function TabWindowGetRect
 
-BOOL TabWindowHandleCommandMessage( WPARAM wParam, LPARAM, void( *lpDoubleClickFunction )( LPCTSTR lpszItemText ), void( *lpSelectionChangedFunction )( LPCTSTR lpszItemText ) )
+BOOL TabWindowHandleNotifyMessage( WPARAM, LPARAM lParam )
 {
 	BOOL bResult = FALSE;
 
 	// Select tab window notification code
-	switch( HIWORD( wParam ) )
+	switch( ( ( LPNMHDR )lParam )->code )
 	{
+		case TCN_SELCHANGING:
+		{
+			// A selection changing message
+
+			// Break out of switch
+			break;
+
+		} // End of a selection changing message
+		case TCN_SELCHANGE:
+		{
+			// A selection change message
+			int nSelectedTab;
+
+			// Get selected tab
+			nSelectedTab = SendMessage( g_hWndTab, TCM_GETCURSEL, ( WPARAM )NULL, ( LPARAM )NULL );
+
+			// Ensure that selected tab was got
+			if( nSelectedTab >= 0 )
+			{
+				// Successfully got selected tab
+				TCITEM tcItem;
+
+				// Allocate string memory
+				LPTSTR lpszTitle = new char[ STRING_LENGTH ];
+
+				// Clear tab control item structure
+				ZeroMemory( &tcItem, sizeof( tcItem ) );
+
+				// Initialise tab control item structure
+				tcItem.mask			= TCIF_TEXT;
+				tcItem.pszText		= lpszTitle;
+				tcItem.cchTextMax	= STRING_LENGTH;
+
+				// Get tab control item
+				if( SendMessage( g_hWndTab, TCM_GETITEM, ( WPARAM )nSelectedTab, ( LPARAM )&tcItem ) )
+				{
+					// Successfully got tab control item
+
+					MessageBox( 0, lpszTitle, "", MB_OK );
+
+				} // End of successfully got tab control item
+
+				// Free string memory
+				delete [] lpszTitle;
+
+			} // End of successfully got selected tab
+
+/*
+			int iPage = TabCtrl_GetCurSel(hwndTab); 
+
+			// Note that g_hInst is the global instance handle.
+			LoadString(g_hInst, IDS_SUNDAY + iPage, achTemp,
+			sizeof(achTemp) / sizeof(achTemp[0])); 
+			LRESULT result = SendMessage(hwndDisplay, WM_SETTEXT, 0,
+			(LPARAM) achTemp); 
+*/
+			// Break out of switch
+			break;
+
+		} // End of a selection change message
 		default:
 		{
 			// Default notification code
@@ -99,7 +159,7 @@ BOOL TabWindowHandleCommandMessage( WPARAM wParam, LPARAM, void( *lpDoubleClickF
 
 	return bResult;
 
-} // End of function TabWindowHandleCommandMessage
+} // End of function TabWindowHandleNotifyMessage
 
 int TabWindowLoad( LPCTSTR lpszFileName )
 {

@@ -227,10 +227,30 @@ LRESULT CALLBACK MainWndProc( HWND hWndMain, UINT uMessage, WPARAM wParam, LPARA
 			// Get notify message handler
 			lpNmHdr = ( LPNMHDR )lParam;
 
-			// Source window is lpNmHdr->hwndFrom
+			// See if notify message is from tab control window
+			if( IsTabWindow( lpNmHdr->hwndFrom ) )
+			{
+				// Notify message is from tab control window
 
-			// Call default procedure
-			lr = DefWindowProc( hWndMain, uMessage, wParam, lParam );
+				// Handle notify message from tab control window
+				if( !( TabWindowHandleNotifyMessage( wParam, lParam ) ) )
+				{
+					// Notify message was not handled by tab control window
+
+					// Call default procedure
+					lr = DefWindowProc( hWndMain, uMessage, wParam, lParam );
+
+				} // End of notify message was not handled by tab control window
+
+			} // End of notify message is from tab control window
+			else
+			{
+				// Notify message is not from tab control window
+
+				// Call default procedure
+				lr = DefWindowProc( hWndMain, uMessage, wParam, lParam );
+
+			} // End of notify message is not from tab control window
 
 			// Break out of switch
 			break;

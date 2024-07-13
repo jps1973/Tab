@@ -1,22 +1,22 @@
-// TabWindow.cpp
+// TabControlWindow.cpp
 
-#include "TabWindow.h"
+#include "TabControlWindow.h"
 
 // Global variables
-HWND g_hWndTab;
+HWND g_hWndTabControl;
 HINSTANCE g_hInstance;
 int g_nNumberOfTabs;
 int g_nNextTabNumber;
 
 
-BOOL IsTabWindow( HWND hWnd )
+BOOL IsTabControlWindow( HWND hWnd )
 {
-	// See if supplied window is tab window
-	return( hWnd == g_hWndTab );
+	// See if supplied window is tab control window
+	return( hWnd == g_hWndTabControl );
 
-} // End of function IsTabWindow
+} // End of function IsTabControlWindow
 
-BOOL TabWindowCreate( HWND hWndParent, HINSTANCE hInstance )
+BOOL TabControlWindowCreate( HWND hWndParent, HINSTANCE hInstance )
 {
 	BOOL bResult = FALSE;
 
@@ -47,13 +47,13 @@ BOOL TabWindowCreate( HWND hWndParent, HINSTANCE hInstance )
 		nClientWidth	= ( rcClient.right - rcClient.left );
 		nClientHeight	= ( rcClient.bottom - rcClient.top );
 
-		// Create tab window
-		g_hWndTab = ::CreateWindowEx( TAB_WINDOW_EXTENDED_STYLE, TAB_WINDOW_CLASS_NAME, TAB_WINDOW_TEXT, TAB_WINDOW_STYLE, 0, 0, nClientWidth, nClientHeight, hWndParent, ( HMENU )NULL, g_hInstance, NULL );
+		// Create tab control window
+		g_hWndTabControl = ::CreateWindowEx( TAB_CONTROL_WINDOW_EXTENDED_STYLE, TAB_CONTROL_WINDOW_CLASS_NAME, TAB_CONTROL_WINDOW_TEXT, TAB_CONTROL_WINDOW_STYLE, 0, 0, nClientWidth, nClientHeight, hWndParent, ( HMENU )NULL, g_hInstance, NULL );
 
-		// Ensure that tab window was created
-		if( g_hWndTab )
+		// Ensure that tab control window was created
+		if( g_hWndTabControl )
 		{
-			// Successfully created tab window
+			// Successfully created tab control window
 
 			// Initialise global variables
 			g_nNumberOfTabs		= 0;
@@ -64,24 +64,24 @@ BOOL TabWindowCreate( HWND hWndParent, HINSTANCE hInstance )
 
 		} // End of successfully initilised common controls
 
-	} // End of successfully created tab window
+	} // End of successfully created tab control window
 
 	return bResult;
 
-} // End of function TabWindowCreate
+} // End of function TabControlWindowCreate
 
-BOOL TabWindowGetRect( LPRECT lpRect )
+BOOL TabControlWindowGetRect( LPRECT lpRect )
 {
-	// Get tab window rect
-	return ::GetWindowRect( g_hWndTab, lpRect );
+	// Get tab control window rect
+	return ::GetWindowRect( g_hWndTabControl, lpRect );
 
-} // End of function TabWindowGetRect
+} // End of function TabControlWindowGetRect
 
-BOOL TabWindowHandleNotifyMessage( WPARAM, LPARAM lParam )
+BOOL TabControlWindowHandleNotifyMessage( WPARAM, LPARAM lParam )
 {
 	BOOL bResult = FALSE;
 
-	// Select tab window notification code
+	// Select tab control window notification code
 	switch( ( ( LPNMHDR )lParam )->code )
 	{
 		case TCN_SELCHANGING:
@@ -98,7 +98,7 @@ BOOL TabWindowHandleNotifyMessage( WPARAM, LPARAM lParam )
 			int nSelectedTab;
 
 			// Get selected tab
-			nSelectedTab = SendMessage( g_hWndTab, TCM_GETCURSEL, ( WPARAM )NULL, ( LPARAM )NULL );
+			nSelectedTab = SendMessage( g_hWndTabControl, TCM_GETCURSEL, ( WPARAM )NULL, ( LPARAM )NULL );
 
 			// Ensure that selected tab was got
 			if( nSelectedTab >= 0 )
@@ -118,7 +118,7 @@ BOOL TabWindowHandleNotifyMessage( WPARAM, LPARAM lParam )
 				tcItem.cchTextMax	= STRING_LENGTH;
 
 				// Get tab control item
-				if( SendMessage( g_hWndTab, TCM_GETITEM, ( WPARAM )nSelectedTab, ( LPARAM )&tcItem ) )
+				if( SendMessage( g_hWndTabControl, TCM_GETITEM, ( WPARAM )nSelectedTab, ( LPARAM )&tcItem ) )
 				{
 					// Successfully got tab control item
 
@@ -155,13 +155,13 @@ BOOL TabWindowHandleNotifyMessage( WPARAM, LPARAM lParam )
 
 		} // End of default notification code
 
-	}; // End of selection for tab window notification code
+	}; // End of selection for tab control window notification code
 
 	return bResult;
 
-} // End of function TabWindowHandleNotifyMessage
+} // End of function TabControlWindowHandleNotifyMessage
 
-int TabWindowLoad( LPCTSTR lpszFileName )
+int TabControlWindowLoad( LPCTSTR lpszFileName )
 {
 	int nResult = -1;
 
@@ -206,7 +206,7 @@ int TabWindowLoad( LPCTSTR lpszFileName )
 				while( lpszTab )
 				{
 					// Create new tab
-					if( TabWindowNewTab( lpszTab ) >= 0 )
+					if( TabControlWindowNewTab( lpszTab ) >= 0 )
 					{
 						// Successfully created new tab
 
@@ -245,17 +245,17 @@ int TabWindowLoad( LPCTSTR lpszFileName )
 
 	return nResult;
 
-} // End of function TabWindowLoad
+} // End of function TabControlWindowLoad
 
 
-BOOL TabWindowMove( int nX, int nY, int nWidth, int nHeight, BOOL bRepaint )
+BOOL TabControlWindowMove( int nX, int nY, int nWidth, int nHeight, BOOL bRepaint )
 {
-	// Move tab window
-	return ::MoveWindow( g_hWndTab, nX, nY, nWidth, nHeight, bRepaint );
+	// Move tab control window
+	return ::MoveWindow( g_hWndTabControl, nX, nY, nWidth, nHeight, bRepaint );
 
-} // End of function TabWindowMove
+} // End of function TabControlWindowMove
 
-int TabWindowNewTab( LPCTSTR lpszTitle )
+int TabControlWindowNewTab( LPCTSTR lpszTitle )
 {
 	int nResult = -1;
 
@@ -269,7 +269,7 @@ int TabWindowNewTab( LPCTSTR lpszTitle )
 	tabControlItem.pszText	= ( LPTSTR )lpszTitle;
 
 	// Insert tab control item
-	nResult = SendMessage( g_hWndTab, TCM_INSERTITEM, ( WPARAM )g_nNumberOfTabs, ( LPARAM )&tabControlItem );
+	nResult = SendMessage( g_hWndTabControl, TCM_INSERTITEM, ( WPARAM )g_nNumberOfTabs, ( LPARAM )&tabControlItem );
 
 	// Ensure that tab control item was inserted
 	if( nResult >= 0 )
@@ -284,23 +284,23 @@ int TabWindowNewTab( LPCTSTR lpszTitle )
 
 	return nResult;
 
-} // End of function TabWindowNewTab
+} // End of function TabControlWindowNewTab
 
-HWND TabWindowSetFocus()
+HWND TabControlWindowSetFocus()
 {
-	// Focus on tab window
-	return ::SetFocus( g_hWndTab );
+	// Focus on tab control window
+	return ::SetFocus( g_hWndTabControl );
 
-} // End of function TabWindowSetFocus
+} // End of function TabControlWindowSetFocus
 
-void TabWindowSetFont( HFONT hFont )
+void TabControlWindowSetFont( HFONT hFont )
 {
-	// Set tab window font
-	::SendMessage( g_hWndTab, WM_SETFONT, ( WPARAM )hFont, ( LPARAM )TRUE );
+	// Set tab control window font
+	::SendMessage( g_hWndTabControl, WM_SETFONT, ( WPARAM )hFont, ( LPARAM )TRUE );
 
-} // End of function TabWindowSetFont
+} // End of function TabControlWindowSetFont
 
-BOOL TabWindowSize( LPARAM lParam )
+BOOL TabControlWindowSize( LPARAM lParam )
 {
 	BOOL bResult = FALSE;
 
@@ -312,16 +312,16 @@ BOOL TabWindowSize( LPARAM lParam )
 	nClientHeight	= ( int )HIWORD( lParam );
 
 
-	// Set tab window position
-	if( SetWindowPos( g_hWndTab, HWND_TOP, 0, 0, nClientWidth, nClientHeight, SWP_SHOWWINDOW ) )
+	// Set tab control window position
+	if( SetWindowPos( g_hWndTabControl, HWND_TOP, 0, 0, nClientWidth, nClientHeight, SWP_SHOWWINDOW ) )
 	{
-		// Successfully set tab window position
+		// Successfully set tab control window position
 
 		// Update return value
 		bResult = TRUE;
 
-	} // End of successfully set tab window position
+	} // End of successfully set tab control window position
 
 	return bResult;
 
-} // End of function TabWindowSize
+} // End of function TabControlWindowSize

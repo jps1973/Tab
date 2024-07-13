@@ -47,15 +47,15 @@ LRESULT CALLBACK MainWndProc( HWND hWndMain, UINT uMessage, WPARAM wParam, LPARA
 			// Get font
 			hFont = ( HFONT )GetStockObject( DEFAULT_GUI_FONT );
 
-			// Create tab window
-			if( TabWindowCreate( hWndMain, hInstance ) )
+			// Create tab control window
+			if( TabControlWindowCreate( hWndMain, hInstance ) )
 			{
-				// Successfully created tab window
+				// Successfully created tab control window
 
-				// Set tab window font
-				TabWindowSetFont( hFont );
+				// Set tab control window font
+				TabControlWindowSetFont( hFont );
 
-			} // End of successfully created tab window
+			} // End of successfully created tab control window
 
 			// Break out of switch
 			break;
@@ -65,8 +65,8 @@ LRESULT CALLBACK MainWndProc( HWND hWndMain, UINT uMessage, WPARAM wParam, LPARA
 		{
 			// A size message
 
-			// Size tab window
-			TabWindowSize( lParam );
+			// Size tab control window
+			TabControlWindowSize( lParam );
 
 			// Break out of switch
 			break;
@@ -228,12 +228,12 @@ LRESULT CALLBACK MainWndProc( HWND hWndMain, UINT uMessage, WPARAM wParam, LPARA
 			lpNmHdr = ( LPNMHDR )lParam;
 
 			// See if notify message is from tab control window
-			if( IsTabWindow( lpNmHdr->hwndFrom ) )
+			if( IsTabControlWindow( lpNmHdr->hwndFrom ) )
 			{
 				// Notify message is from tab control window
 
 				// Handle notify message from tab control window
-				if( !( TabWindowHandleNotifyMessage( wParam, lParam ) ) )
+				if( !( TabControlWindowHandleNotifyMessage( wParam, lParam ) ) )
 				{
 					// Notify message was not handled by tab control window
 
@@ -407,7 +407,7 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE, LPTSTR, int nCmdShow )
 			UpdateWindow( hWndMain );
 
 			// Load tabs
-			TabWindowLoad( TAB_WINDOW_FILE_NAME );
+			TabControlWindowLoad( TAB_CONTROL_WINDOW_FILE_NAME );
 
 			// Message loop
 			while( GetMessage( &msg, NULL, 0, 0 ) > 0 )

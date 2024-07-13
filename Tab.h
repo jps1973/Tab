@@ -6,7 +6,7 @@
 
 #include "Resource.h"
 
-#include "TabWindow.h"
+#include "TabControlWindow.h"
 
 #define MAIN_WINDOW_CLASS_NAME													"Main Tab Window Class"
 

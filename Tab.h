@@ -35,11 +35,11 @@
 #define ERROR_MESSAGE_CAPTION													"Error"
 #define WARNING_MESSAGE_CAPTION													"Warning"
 
-#define ABOUT_MESSAGE_TEXT														"Tab\r\n"						\
+#define ABOUT_MESSAGE_TEXT														"Tab\r\n"							\
 																				"\r\n"								\
 																				"Written by Jim Smith\r\n"			\
 																				"\r\n"								\
-																				"May 2024"
+																				"July 2024"
 
 #define UNABLE_TO_CREATE_MAIN_WINDOW_ERROR_MESSAGE								"Unable to create main window"
 #define UNABLE_TO_REGISTER_MAIN_WINDOW_CLASS_ERROR_MESSAGE						"Unable to register main window class"

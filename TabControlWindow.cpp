@@ -3,10 +3,10 @@
 #include "TabControlWindow.h"
 
 // Global variables
-HWND g_hWndTabControl;
-HINSTANCE g_hInstance;
-int g_nNumberOfTabs;
-int g_nNextTabNumber;
+static HWND g_hWndTabControl;
+static HINSTANCE g_hInstance;
+static int g_nNumberOfTabs;
+static UINT g_nNextControlWindowID;
 
 
 BOOL IsTabControlWindow( HWND hWnd )
@@ -56,8 +56,8 @@ BOOL TabControlWindowCreate( HWND hWndParent, HINSTANCE hInstance )
 			// Successfully created tab control window
 
 			// Initialise global variables
-			g_nNumberOfTabs		= 0;
-			g_nNextTabNumber	= 1;
+			g_nNumberOfTabs			= 0;
+			g_nNextControlWindowID	= TAB_CONTROL_WINDOW_FIRST_CONTROL_WINDOW_ID;
 
 			// Update return value (assume success)
 			bResult = TRUE;
@@ -70,6 +70,32 @@ BOOL TabControlWindowCreate( HWND hWndParent, HINSTANCE hInstance )
 
 } // End of function TabControlWindowCreate
 
+int TabControlWindowGetControlWindowID( int nWhichTab )
+{
+	int nResult = 0;
+
+	TCITEM tcItem;
+
+	// Clear tab control structure
+	::ZeroMemory( &tcItem, sizeof( tcItem ) );
+
+	// Initialise tab control structure
+	tcItem.mask = TCIF_PARAM;
+
+	// Get tab control item
+	if( ::SendMessage( g_hWndTabControl, TCM_GETITEM, ( WPARAM )nWhichTab, ( LPARAM )&tcItem ) )
+	{
+		// Successfully got tab control item
+
+		// Update return value
+		nResult = tcItem.lParam;
+
+	} // End of successfully got tab control item
+
+	return nResult;
+
+} // End of function TabControlWindowGetControlWindowID
+
 BOOL TabControlWindowGetRect( LPRECT lpRect )
 {
 	// Get tab control window rect
@@ -77,7 +103,7 @@ BOOL TabControlWindowGetRect( LPRECT lpRect )
 
 } // End of function TabControlWindowGetRect
 
-BOOL TabControlWindowHandleNotifyMessage( WPARAM, LPARAM lParam )
+BOOL TabControlWindowHandleNotifyMessage( WPARAM, LPARAM lParam, HWND hWndMain )
 {
 	BOOL bResult = FALSE;
 
@@ -104,6 +130,11 @@ BOOL TabControlWindowHandleNotifyMessage( WPARAM, LPARAM lParam )
 			if( nSelectedTab >= 0 )
 			{
 				// Successfully got selected tab
+
+				// Select tab
+				TabControlWindowSelectTab( hWndMain, nSelectedTab );
+
+				/*
 				TCITEM tcItem;
 
 				// Allocate string memory
@@ -128,18 +159,10 @@ BOOL TabControlWindowHandleNotifyMessage( WPARAM, LPARAM lParam )
 
 				// Free string memory
 				delete [] lpszTitle;
+				*/
 
 			} // End of successfully got selected tab
 
-/*
-			int iPage = TabCtrl_GetCurSel(hwndTab); 
-
-			// Note that g_hInst is the global instance handle.
-			LoadString(g_hInst, IDS_SUNDAY + iPage, achTemp,
-			sizeof(achTemp) / sizeof(achTemp[0])); 
-			LRESULT result = SendMessage(hwndDisplay, WM_SETTEXT, 0,
-			(LPARAM) achTemp); 
-*/
 			// Break out of switch
 			break;
 
@@ -161,7 +184,7 @@ BOOL TabControlWindowHandleNotifyMessage( WPARAM, LPARAM lParam )
 
 } // End of function TabControlWindowHandleNotifyMessage
 
-int TabControlWindowLoad( LPCTSTR lpszFileName )
+int TabControlWindowLoad( HWND hWndMain, LPCTSTR lpszFileName )
 {
 	int nResult = -1;
 
@@ -206,7 +229,7 @@ int TabControlWindowLoad( LPCTSTR lpszFileName )
 				while( lpszTab )
 				{
 					// Create new tab
-					if( TabControlWindowNewTab( lpszTab ) >= 0 )
+					if( TabControlWindowNewTab( hWndMain, lpszTab ) >= 0 )
 					{
 						// Successfully created new tab
 
@@ -247,7 +270,6 @@ int TabControlWindowLoad( LPCTSTR lpszFileName )
 
 } // End of function TabControlWindowLoad
 
-
 BOOL TabControlWindowMove( int nX, int nY, int nWidth, int nHeight, BOOL bRepaint )
 {
 	// Move tab control window
@@ -255,7 +277,7 @@ BOOL TabControlWindowMove( int nX, int nY, int nWidth, int nHeight, BOOL bRepain
 
 } // End of function TabControlWindowMove
 
-int TabControlWindowNewTab( LPCTSTR lpszTitle )
+int TabControlWindowNewTab( HWND hWndMain, LPCTSTR lpszTitle )
 {
 	int nResult = -1;
 
@@ -265,8 +287,10 @@ int TabControlWindowNewTab( LPCTSTR lpszTitle )
 	ZeroMemory( &tabControlItem, sizeof( tabControlItem ) );
 
 	// Initialise tab control item structure
-	tabControlItem.mask		= TCIF_TEXT;
-	tabControlItem.pszText	= ( LPTSTR )lpszTitle;
+	tabControlItem.mask			= ( TCIF_TEXT | TCIF_PARAM );
+	tabControlItem.cchTextMax	= STRING_LENGTH;
+	tabControlItem.pszText		= ( LPTSTR )lpszTitle;
+	tabControlItem.lParam		= g_nNextControlWindowID;
 
 	// Insert tab control item
 	nResult = SendMessage( g_hWndTabControl, TCM_INSERTITEM, ( WPARAM )g_nNumberOfTabs, ( LPARAM )&tabControlItem );
@@ -276,15 +300,36 @@ int TabControlWindowNewTab( LPCTSTR lpszTitle )
 	{
 		// Successfully inserted tab control item
 
+		// Create control window
+		ControlWindowCreate( hWndMain, g_hInstance, g_nNextControlWindowID, lpszTitle );
+
 		// Update global variables
-		g_nNextTabNumber ++;
 		g_nNumberOfTabs ++;
+		g_nNextControlWindowID ++;
 
 	} // End of successfully inserted tab control item
 
 	return nResult;
 
 } // End of function TabControlWindowNewTab
+
+BOOL TabControlWindowSelectTab( HWND hWndMain, int nWhichTab )
+{
+	BOOL bResult = FALSE;
+
+	// Select tab
+	if( ::SendMessage( g_hWndTabControl, TCM_SETCURSEL, ( WPARAM )nWhichTab, ( LPARAM )NULL ) >= 0 )
+	{
+		// Successfully selected tab
+
+		// Show control window for tab
+		bResult = TabControlWindowShowControlWindow( hWndMain, nWhichTab );
+
+	} // End of successfully selected tab
+
+	return bResult;
+
+} // End of function TabControlWindowSelectTab
 
 HWND TabControlWindowSetFocus()
 {
@@ -299,6 +344,70 @@ void TabControlWindowSetFont( HFONT hFont )
 	::SendMessage( g_hWndTabControl, WM_SETFONT, ( WPARAM )hFont, ( LPARAM )TRUE );
 
 } // End of function TabControlWindowSetFont
+
+BOOL TabControlWindowShowControlWindow( HWND hWndMain, int nSelectedTab )
+{
+	BOOL bResult = FALSE;
+
+	int nTabCount;
+	int nWhichTab;
+	HWND hWndControl;
+	int nControlWindowID;
+
+	// Count tabs
+	nTabCount = ::SendMessage( g_hWndTabControl, TCM_GETITEMCOUNT, ( WPARAM )NULL, ( LPARAM )NULL );
+
+	// Loop through all tabs
+	for( nWhichTab = 0; nWhichTab < nTabCount; nWhichTab ++ )
+	{
+		// Get control window id
+		nControlWindowID = TabControlWindowGetControlWindowID( nWhichTab );
+
+		// Get control window
+		hWndControl = GetDlgItem( hWndMain, nControlWindowID );
+
+		// Ensure that control window was got
+		if( hWndControl )
+		{
+			// Successfully got control window
+
+			// See if this is the selected tab
+			if( nWhichTab == nSelectedTab )
+			{
+				// This is the selected tab
+
+				// Show control window
+				ShowWindow( hWndControl, SW_SHOW );
+
+				// Focus on control window
+				SetFocus( hWndControl );
+
+				// Invalidate entire main window
+				InvalidateRect( hWndMain, NULL, TRUE );
+
+				// Update main window
+				UpdateWindow( hWndMain );
+
+				// Update return value_comp
+				bResult = TRUE;
+
+			} // End of this is the selected tab
+			else
+			{
+				// This is not the selected tab
+
+				// Hide control window
+				ShowWindow( hWndControl, SW_HIDE );
+
+			} // End of this is not the selected tab
+
+		} // End of successfully got control window
+
+	}; // End of loop through all tabs
+
+	return bResult;
+
+} // End of function TabControlWindowShowControlWindow
 
 BOOL TabControlWindowSize( LPARAM lParam )
 {

@@ -233,7 +233,7 @@ LRESULT CALLBACK MainWndProc( HWND hWndMain, UINT uMessage, WPARAM wParam, LPARA
 				// Notify message is from tab control window
 
 				// Handle notify message from tab control window
-				if( !( TabControlWindowHandleNotifyMessage( wParam, lParam ) ) )
+				if( !( TabControlWindowHandleNotifyMessage( wParam, lParam, hWndMain ) ) )
 				{
 					// Notify message was not handled by tab control window
 
@@ -407,7 +407,10 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE, LPTSTR, int nCmdShow )
 			UpdateWindow( hWndMain );
 
 			// Load tabs
-			TabControlWindowLoad( TAB_CONTROL_WINDOW_FILE_NAME );
+			TabControlWindowLoad( hWndMain, TAB_CONTROL_WINDOW_FILE_NAME );
+
+			// Show first tab
+			TabControlWindowSelectTab( hWndMain, 0 );
 
 			// Message loop
 			while( GetMessage( &msg, NULL, 0, 0 ) > 0 )

@@ -250,6 +250,52 @@ BOOL TabControlWindowMove( int nX, int nY, int nWidth, int nHeight, BOOL bRepain
 
 } // End of function TabControlWindowMove
 
+BOOL TabControlWindowMoveControlWindow( HWND hWndMain )
+{
+	BOOL bResult = FALSE;
+
+	int nSelectedTab;
+
+	// Get selected tab
+	nSelectedTab = SendMessage( g_hWndTabControl, TCM_GETCURSEL, ( WPARAM )NULL, ( LPARAM )NULL );
+
+	// Ensure that selected tab was got
+	if( nSelectedTab >= 0 )
+	{
+		// Successfully got selected tab
+		int nControlWindowID;
+		HWND hWndControl;
+
+		// Get selected control window id
+		nControlWindowID = TabControlWindowGetControlWindowID( nSelectedTab );
+
+		// Get control window
+		hWndControl = GetDlgItem( hWndMain, nControlWindowID );
+
+		// Ensure that control window was got
+		if( hWndControl )
+		{
+			// Successfully got control window
+
+			// Move control indow
+			if( ControlWindowMove( hWndControl, g_hWndTabControl ) )
+			{
+				// Successfully moved control window
+
+				// Update return value
+				bResult = TRUE;
+
+			} // End of successfully moved control window
+
+		} // End of successfully got control window
+
+
+	} // End of successfully got selected tab
+
+	return bResult;
+
+} // End of function TabControlWindowMoveControlWindow
+
 int TabControlWindowNewTab( HWND hWndMain, LPCTSTR lpszTitle )
 {
 	int nResult = -1;
@@ -272,9 +318,20 @@ int TabControlWindowNewTab( HWND hWndMain, LPCTSTR lpszTitle )
 	if( nResult >= 0 )
 	{
 		// Successfully inserted tab control item
+		HWND hWndControl;
 
 		// Create control window
-		ControlWindowCreate( hWndMain, g_hInstance, g_nNextControlWindowID, lpszTitle );
+		hWndControl = ControlWindowCreate( hWndMain, g_hInstance, g_nNextControlWindowID, lpszTitle );
+
+		// Ensure that control window was created
+		if( hWndControl )
+		{
+			// Successfully created control window
+
+			// Move control window
+			ControlWindowMove( hWndControl, g_hWndTabControl );
+
+		} // End of successfully created control window
 
 		// Update global variables
 		g_nNumberOfTabs ++;
@@ -348,6 +405,9 @@ BOOL TabControlWindowShowControlWindow( HWND hWndMain, int nSelectedTab )
 			if( nWhichTab == nSelectedTab )
 			{
 				// This is the selected tab
+
+				// Move control window
+				ControlWindowMove( hWndControl, g_hWndTabControl );
 
 				// Show control window
 				ShowWindow( hWndControl, SW_SHOW );

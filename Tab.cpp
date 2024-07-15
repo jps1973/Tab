@@ -97,6 +97,9 @@ LRESULT CALLBACK MainWndProc( HWND hWndMain, UINT uMessage, WPARAM wParam, LPARA
 			// Move tab control window
 			TabControlWindowMove( 0, 0, nClientWidth, nTabControlWindowHeight, TRUE );
 
+			// Move control window
+			TabControlWindowMoveControlWindow( hWndMain );
+
 			// Break out of switch
 			break;
 

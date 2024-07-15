@@ -15,3 +15,7 @@
 #define CONTROL_WINDOW_TEXT														NULL
 
 HWND ControlWindowCreate( HWND hWndParent, HINSTANCE hInstance, int nID, LPCTSTR lpszData );
+
+BOOL ControlWindowMove( HWND hWndControl, HWND hWndTabControl );
+
+void ControlWindowSetFont( HWND hWndControl, int nWhichFont );

@@ -36,6 +36,8 @@ int TabControlWindowLoad( HWND hWndMain, LPCTSTR lpszFileName );
 
 BOOL TabControlWindowMove( int nX, int nY, int nWidth, int nHeight, BOOL bRepaint = TRUE );
 
+BOOL TabControlWindowMoveControlWindow( HWND hWndMain );
+
 int TabControlWindowNewTab( HWND hWndMain, LPCTSTR lpszTitle );
 
 BOOL TabControlWindowSelectTab( HWND hWndMain, int nWhichTab );

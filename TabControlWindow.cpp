@@ -134,33 +134,6 @@ BOOL TabControlWindowHandleNotifyMessage( WPARAM, LPARAM lParam, HWND hWndMain )
 				// Select tab
 				TabControlWindowSelectTab( hWndMain, nSelectedTab );
 
-				/*
-				TCITEM tcItem;
-
-				// Allocate string memory
-				LPTSTR lpszTitle = new char[ STRING_LENGTH ];
-
-				// Clear tab control item structure
-				ZeroMemory( &tcItem, sizeof( tcItem ) );
-
-				// Initialise tab control item structure
-				tcItem.mask			= TCIF_TEXT;
-				tcItem.pszText		= lpszTitle;
-				tcItem.cchTextMax	= STRING_LENGTH;
-
-				// Get tab control item
-				if( SendMessage( g_hWndTabControl, TCM_GETITEM, ( WPARAM )nSelectedTab, ( LPARAM )&tcItem ) )
-				{
-					// Successfully got tab control item
-
-					MessageBox( 0, lpszTitle, "", MB_OK );
-
-				} // End of successfully got tab control item
-
-				// Free string memory
-				delete [] lpszTitle;
-				*/
-
 			} // End of successfully got selected tab
 
 			// Break out of switch
@@ -408,29 +381,3 @@ BOOL TabControlWindowShowControlWindow( HWND hWndMain, int nSelectedTab )
 	return bResult;
 
 } // End of function TabControlWindowShowControlWindow
-
-BOOL TabControlWindowSize( LPARAM lParam )
-{
-	BOOL bResult = FALSE;
-
-	int nClientWidth;
-	int nClientHeight;
-
-	// Store client size
-	nClientWidth	= ( int )LOWORD( lParam );
-	nClientHeight	= ( int )HIWORD( lParam );
-
-
-	// Set tab control window position
-	if( SetWindowPos( g_hWndTabControl, HWND_TOP, 0, 0, nClientWidth, nClientHeight, SWP_SHOWWINDOW ) )
-	{
-		// Successfully set tab control window position
-
-		// Update return value
-		bResult = TRUE;
-
-	} // End of successfully set tab control window position
-
-	return bResult;
-
-} // End of function TabControlWindowSize

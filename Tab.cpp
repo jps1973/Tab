@@ -55,6 +55,16 @@ LRESULT CALLBACK MainWndProc( HWND hWndMain, UINT uMessage, WPARAM wParam, LPARA
 				// Set tab control window font
 				TabControlWindowSetFont( hFont );
 
+				// Create status bar window
+				if( StatusBarWindowCreate( hWndMain, hInstance ) )
+				{
+					// Successfully created status bar window
+
+					// Set status bar window font
+					StatusBarWindowSetFont( hFont );
+
+				} // End of successfully created status bar window
+
 			} // End of successfully created tab control window
 
 			// Break out of switch
@@ -64,9 +74,28 @@ LRESULT CALLBACK MainWndProc( HWND hWndMain, UINT uMessage, WPARAM wParam, LPARA
 		case WM_SIZE:
 		{
 			// A size message
+			int nClientWidth;
+			int nClientHeight;
+			RECT rcStatus;
+			int nStatusWindowHeight;
+			int nTabControlWindowHeight;
 
-			// Size tab control window
-			TabControlWindowSize( lParam );
+			// Store client width and height
+			nClientWidth	= ( int )LOWORD( lParam );
+			nClientHeight	= ( int )HIWORD( lParam );
+
+			// Size status bar window
+			StatusBarWindowSize();
+
+			// Get status window size
+			StatusBarWindowGetRect( &rcStatus );
+
+			// Calculate window sizes
+			nStatusWindowHeight		= ( rcStatus.bottom - rcStatus.top );
+			nTabControlWindowHeight	= ( nClientHeight - nStatusWindowHeight );
+
+			// Move tab control window
+			TabControlWindowMove( 0, 0, nClientWidth, nTabControlWindowHeight, TRUE );
 
 			// Break out of switch
 			break;

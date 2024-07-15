@@ -45,5 +45,3 @@ HWND TabControlWindowSetFocus();
 void TabControlWindowSetFont( HFONT hFont );
 
 BOOL TabControlWindowShowControlWindow( HWND hWndMain, int nSelectedTab );
-
-BOOL TabControlWindowSize( LPARAM lParam );

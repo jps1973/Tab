@@ -2,12 +2,12 @@
 
 #include "ControlWindow.h"
 
-HWND ControlWindowCreate( HWND hWndParent, HINSTANCE hInstance, int nID, LPCTSTR lpszData )
+HWND ControlWindowCreate( HWND hWndParent, HINSTANCE hInstance, LPCTSTR lpszData )
 {
 	HWND hWndControl;
 
 	// Create control window
-	hWndControl = ::CreateWindowEx( CONTROL_WINDOW_EXTENDED_STYLE, CONTROL_WINDOW_CLASS_NAME, CONTROL_WINDOW_TEXT, CONTROL_WINDOW_STYLE, 100, 100, 100, 100, hWndParent, ( HMENU )INT_PTR( nID ), hInstance, NULL );
+	hWndControl = ::CreateWindowEx( CONTROL_WINDOW_EXTENDED_STYLE, CONTROL_WINDOW_CLASS_NAME, CONTROL_WINDOW_TEXT, CONTROL_WINDOW_STYLE, 100, 100, 100, 100, hWndParent, ( HMENU )NULL, hInstance, NULL );
 
 	// Ensure that control window was created
 	if( hWndControl )

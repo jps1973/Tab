@@ -22,9 +22,19 @@
 
 #define TAB_CONTROL_WINDOW_FIRST_CONTROL_WINDOW_ID								( WM_USER + 10 )
 
+typedef struct
+{
+	TCITEMHEADER tcItemHeader;
+
+	HWND hWndControl;
+
+} TabData;
+
 BOOL IsTabControlWindow( HWND hWnd );
 
 BOOL TabControlWindowCreate( HWND hWndParent, HINSTANCE hInstance );
+
+HWND TabControlWindowGetControlWindow( int nWhichTab );
 
 int TabControlWindowGetControlWindowID( int nWhichTab );
 
@@ -36,7 +46,7 @@ int TabControlWindowLoad( HWND hWndMain, LPCTSTR lpszFileName );
 
 BOOL TabControlWindowMove( int nX, int nY, int nWidth, int nHeight, BOOL bRepaint = TRUE );
 
-BOOL TabControlWindowMoveControlWindow( HWND hWndMain );
+BOOL TabControlWindowMoveControlWindow();
 
 int TabControlWindowNewTab( HWND hWndMain, LPCTSTR lpszTitle );
 

@@ -6,8 +6,6 @@
 static HWND g_hWndTabControl;
 static HINSTANCE g_hInstance;
 static int g_nNumberOfTabs;
-static UINT g_nNextControlWindowID;
-
 
 BOOL IsTabControlWindow( HWND hWnd )
 {
@@ -54,10 +52,16 @@ BOOL TabControlWindowCreate( HWND hWndParent, HINSTANCE hInstance )
 		if( g_hWndTabControl )
 		{
 			// Successfully created tab control window
+			int nExtraBytes;
+
+			// Calculate extra bytes required for tab data
+			nExtraBytes = ( sizeof( TabData ) - sizeof( TCITEMHEADER ) );
+
+			// Set extra bytes
+			SendMessage( g_hWndTabControl, TCM_SETITEMEXTRA, ( WPARAM )nExtraBytes, ( LPARAM )0 );
 
 			// Initialise global variables
-			g_nNumberOfTabs			= 0;
-			g_nNextControlWindowID	= TAB_CONTROL_WINDOW_FIRST_CONTROL_WINDOW_ID;
+			g_nNumberOfTabs = 0;
 
 			// Update return value (assume success)
 			bResult = TRUE;
@@ -69,6 +73,32 @@ BOOL TabControlWindowCreate( HWND hWndParent, HINSTANCE hInstance )
 	return bResult;
 
 } // End of function TabControlWindowCreate
+
+HWND TabControlWindowGetControlWindow( int nWhichTab )
+{
+	HWND hWndResult = NULL;
+
+	TabData tabData;
+
+	// Clear tab control structure
+	::ZeroMemory( &tabData, sizeof( tabData ) );
+
+	// Initialise tab control structure
+	tabData.tcItemHeader.mask = TCIF_PARAM;
+
+	// Get tab data
+	if( ::SendMessage( g_hWndTabControl, TCM_GETITEM, ( WPARAM )nWhichTab, ( LPARAM )&tabData ) )
+	{
+		// Successfully got tab data
+
+		// Update return value
+		hWndResult = tabData.hWndControl;
+
+	} // End of successfully got tab data
+
+	return hWndResult;
+
+} // End of function TabControlWindowGetControlWindow
 
 int TabControlWindowGetControlWindowID( int nWhichTab )
 {
@@ -250,7 +280,7 @@ BOOL TabControlWindowMove( int nX, int nY, int nWidth, int nHeight, BOOL bRepain
 
 } // End of function TabControlWindowMove
 
-BOOL TabControlWindowMoveControlWindow( HWND hWndMain )
+BOOL TabControlWindowMoveControlWindow()
 {
 	BOOL bResult = FALSE;
 
@@ -263,14 +293,10 @@ BOOL TabControlWindowMoveControlWindow( HWND hWndMain )
 	if( nSelectedTab >= 0 )
 	{
 		// Successfully got selected tab
-		int nControlWindowID;
 		HWND hWndControl;
 
-		// Get selected control window id
-		nControlWindowID = TabControlWindowGetControlWindowID( nSelectedTab );
-
 		// Get control window
-		hWndControl = GetDlgItem( hWndMain, nControlWindowID );
+		hWndControl = TabControlWindowGetControlWindow( nSelectedTab );
 
 		// Ensure that control window was got
 		if( hWndControl )
@@ -289,7 +315,6 @@ BOOL TabControlWindowMoveControlWindow( HWND hWndMain )
 
 		} // End of successfully got control window
 
-
 	} // End of successfully got selected tab
 
 	return bResult;
@@ -300,49 +325,45 @@ int TabControlWindowNewTab( HWND hWndMain, LPCTSTR lpszTitle )
 {
 	int nResult = -1;
 
-	TCITEM tabControlItem;
+	TabData tabData;
 
-	// Clear tab control item structure
-	ZeroMemory( &tabControlItem, sizeof( tabControlItem ) );
+	// Clear tab data structure
+	ZeroMemory( &tabData, sizeof( tabData ) );
 
 	// Initialise tab control item structure
-	tabControlItem.mask			= ( TCIF_TEXT | TCIF_PARAM );
-	tabControlItem.cchTextMax	= STRING_LENGTH;
-	tabControlItem.pszText		= ( LPTSTR )lpszTitle;
-	tabControlItem.lParam		= g_nNextControlWindowID;
+	tabData.tcItemHeader.mask		= ( TCIF_TEXT | TCIF_PARAM );
+	tabData.tcItemHeader.cchTextMax	= STRING_LENGTH;
+	tabData.tcItemHeader.pszText	= ( LPTSTR )lpszTitle;
 
-	// Insert tab control item
-	nResult = SendMessage( g_hWndTabControl, TCM_INSERTITEM, ( WPARAM )g_nNumberOfTabs, ( LPARAM )&tabControlItem );
+	// Create control window
+	tabData.hWndControl = ControlWindowCreate( hWndMain, g_hInstance, lpszTitle );
 
-	// Ensure that tab control item was inserted
-	if( nResult >= 0 )
+	// Ensure that control window was created
+	if( tabData.hWndControl )
 	{
-		// Successfully inserted tab control item
-		HWND hWndControl;
+		// Successfully created control window
 
-		// Create control window
-		hWndControl = ControlWindowCreate( hWndMain, g_hInstance, g_nNextControlWindowID, lpszTitle );
+		// Insert tab control item
+		nResult = SendMessage( g_hWndTabControl, TCM_INSERTITEM, ( WPARAM )g_nNumberOfTabs, ( LPARAM )&tabData );
 
-		// Ensure that control window was created
-		if( hWndControl )
+		// Ensure that tab control item was inserted
+		if( nResult >= 0 )
 		{
-			// Successfully created control window
+			// Successfully inserted tab control item
 
 			// Move control window
-			ControlWindowMove( hWndControl, g_hWndTabControl );
+			ControlWindowMove( tabData.hWndControl, g_hWndTabControl );
 
-		} // End of successfully created control window
+			// Update global variables
+			g_nNumberOfTabs ++;
 
-		// Update global variables
-		g_nNumberOfTabs ++;
-		g_nNextControlWindowID ++;
+		} // End of successfully inserted tab control item
 
-	} // End of successfully inserted tab control item
+	} // End of successfully created control window
 
 	return nResult;
 
 } // End of function TabControlWindowNewTab
-
 BOOL TabControlWindowSelectTab( HWND hWndMain, int nWhichTab )
 {
 	BOOL bResult = FALSE;
@@ -382,7 +403,6 @@ BOOL TabControlWindowShowControlWindow( HWND hWndMain, int nSelectedTab )
 	int nTabCount;
 	int nWhichTab;
 	HWND hWndControl;
-	int nControlWindowID;
 
 	// Count tabs
 	nTabCount = ::SendMessage( g_hWndTabControl, TCM_GETITEMCOUNT, ( WPARAM )NULL, ( LPARAM )NULL );
@@ -390,11 +410,8 @@ BOOL TabControlWindowShowControlWindow( HWND hWndMain, int nSelectedTab )
 	// Loop through all tabs
 	for( nWhichTab = 0; nWhichTab < nTabCount; nWhichTab ++ )
 	{
-		// Get control window id
-		nControlWindowID = TabControlWindowGetControlWindowID( nWhichTab );
-
 		// Get control window
-		hWndControl = GetDlgItem( hWndMain, nControlWindowID );
+		hWndControl = TabControlWindowGetControlWindow( nWhichTab );
 
 		// Ensure that control window was got
 		if( hWndControl )

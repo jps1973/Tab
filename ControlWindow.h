@@ -14,7 +14,7 @@
 #define CONTROL_WINDOW_STYLE													( WS_CHILD | WS_VISIBLE | LBS_NOINTEGRALHEIGHT )
 #define CONTROL_WINDOW_TEXT														NULL
 
-HWND ControlWindowCreate( HWND hWndParent, HINSTANCE hInstance, int nID, LPCTSTR lpszData );
+HWND ControlWindowCreate( HWND hWndParent, HINSTANCE hInstance, LPCTSTR lpszData );
 
 BOOL ControlWindowMove( HWND hWndControl, HWND hWndTabControl );
 

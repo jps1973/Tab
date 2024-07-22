@@ -30,6 +30,60 @@ BOOL ControlWindowHandleCommandMessage( WPARAM wParam, LPARAM lParam, LPCTSTR lp
 {
 	BOOL bResult = FALSE;
 
+	// Select command
+	switch( HIWORD( wParam ) )
+	{
+		case LBN_SELCHANGE:
+		{
+			// A list box selection change command
+			HWND hWndControl;
+			int nSelected;
+
+			// Get control window
+			hWndControl = ( HWND )lParam;
+
+			// Get selected item number
+			nSelected = SendMessage( hWndControl, LB_GETCURSEL, ( WPARAM )NULL, ( LPARAM )NULL );
+
+			// Ensure that selected item number was got
+			if( nSelected >= 0 )
+			{
+				// Successfully got selected item number
+
+				// Allocate string memory
+				LPTSTR lpszFileName = new char[ STRING_LENGTH ];
+
+				// Get file name
+				if( SendMessage( hWndControl, LB_GETTEXT, ( WPARAM )nSelected, ( LPARAM )lpszFileName ) != LB_ERR )
+				{
+					// Successfully got file name
+
+					( lpStatusFunction )( lpszFileName );
+
+				} // End of successfully got file name
+
+				// Free string memory
+				delete [] lpszFileName;
+
+			} // End of successfully got selected item number
+
+			// Break out of switch
+			break;
+
+		} // End of a list box selection change command
+		default:
+		{
+			// Default command
+
+			// We dont need to do anything here, just exit with the default value
+
+			// Break out of switch
+			break;
+
+		} // End of default command
+
+	}; // End of selection for command
+
 	return bResult;
 
 } // End of function 

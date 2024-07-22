@@ -201,8 +201,30 @@ LRESULT CALLBACK MainWndProc( HWND hWndMain, UINT uMessage, WPARAM wParam, LPARA
 
 					// Source window is ( HWND )lParam
 
-					// Call default procedure
-					lr = DefWindowProc( hWndMain, uMessage, wParam, lParam );
+					// See if command is from a control window
+					if( TabControlWindowIsControlWindow( LOWORD( wParam ) ) )
+					{
+						// Command is from a control window
+
+						// Handle command from control window (via tab control window)
+						if( !( TabControlWindowHandleControlCommandMessage( wParam, lParam, &StatusBarWindowSetText ) ) )
+						{
+							// Command was not handled from control window (via tab control window)
+
+							// Call default procedure
+							lr = DefWindowProc( hWndMain, uMessage, wParam, lParam );
+
+						} // End of command was not handled from control window (via tab control window)
+
+					} // End of sommand is from a control window
+					else
+					{
+						// Command is not from a control window
+
+						// Call default procedure
+						lr = DefWindowProc( hWndMain, uMessage, wParam, lParam );
+
+					} // End of sommand is not from a control window
 
 					// Break out of switch
 					break;

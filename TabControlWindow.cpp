@@ -6,6 +6,7 @@
 static HWND g_hWndTabControl;
 static HINSTANCE g_hInstance;
 static int g_nNumberOfTabs;
+static int g_nNextControlWindowID;
 
 BOOL IsTabControlWindow( HWND hWnd )
 {
@@ -61,7 +62,8 @@ BOOL TabControlWindowCreate( HWND hWndParent, HINSTANCE hInstance )
 			SendMessage( g_hWndTabControl, TCM_SETITEMEXTRA, ( WPARAM )nExtraBytes, ( LPARAM )0 );
 
 			// Initialise global variables
-			g_nNumberOfTabs = 0;
+			g_nNumberOfTabs			= 0;
+			g_nNextControlWindowID	= TAB_CONTROL_WINDOW_FIRST_CONTROL_WINDOW_ID;
 
 			// Update return value (assume success)
 			bResult = TRUE;
@@ -73,6 +75,29 @@ BOOL TabControlWindowCreate( HWND hWndParent, HINSTANCE hInstance )
 	return bResult;
 
 } // End of function TabControlWindowCreate
+
+HWND TabControlWindowGetControlWindow()
+{
+	HWND hWndResult = NULL;
+
+	int nSelectedTab;
+
+	// Get selected tab
+	nSelectedTab = SendMessage( g_hWndTabControl, TCM_GETCURSEL, ( WPARAM )NULL, ( LPARAM )NULL );
+
+	// Ensure that selected tab was got
+	if( nSelectedTab >= 0 )
+	{
+		// Successfully got selected tab
+
+		// Get control window
+		hWndResult = TabControlWindowGetControlWindow( nSelectedTab );
+
+	} // End of successfully got selected tab
+
+	return hWndResult;
+
+} // End of function TabControlWindowGetControlWindow
 
 HWND TabControlWindowGetControlWindow( int nWhichTab )
 {
@@ -106,6 +131,43 @@ BOOL TabControlWindowGetRect( LPRECT lpRect )
 	return ::GetWindowRect( g_hWndTabControl, lpRect );
 
 } // End of function TabControlWindowGetRect
+
+BOOL TabControlWindowHandleControlCommandMessage( WPARAM wParam, LPARAM lParam, BOOL( *lpStatusFunction )( LPCTSTR lpszStatusText ) )
+{
+	BOOL bResult = FALSE;
+
+	int nSelectedTab;
+
+	// Get selected tab
+	nSelectedTab = SendMessage( g_hWndTabControl, TCM_GETCURSEL, ( WPARAM )NULL, ( LPARAM )NULL );
+
+	// Ensure that selected tab was got
+	if( nSelectedTab >= 0 )
+	{
+		// Successfully got selected tab
+		TabData tabData;
+
+		// Clear tab data structure
+		::ZeroMemory( &tabData, sizeof( tabData ) );
+
+		// Initialise tab data structure
+		tabData.tcItemHeader.mask = TCIF_PARAM;
+
+		// Get tab data
+		if( ::SendMessage( g_hWndTabControl, TCM_GETITEM, ( WPARAM )nSelectedTab, ( LPARAM )&tabData ) )
+		{
+			// Successfully got tab data
+
+			// Handle command message from control window
+			bResult = ControlWindowHandleCommandMessage( wParam, lParam, tabData.lpszParentFolderPath, lpStatusFunction );
+
+		} // End of successfully got tab data
+
+	} // End of successfully got selected tab
+
+	return bResult;
+
+} // End of function TabControlWindowHandleControlCommandMessage
 
 BOOL TabControlWindowHandleNotifyMessage( WPARAM, LPARAM lParam, HWND hWndMain, BOOL( *lpStatusFunction )( LPCTSTR lpszStatusText ) )
 {
@@ -181,6 +243,24 @@ BOOL TabControlWindowHandleNotifyMessage( WPARAM, LPARAM lParam, HWND hWndMain, 
 	return bResult;
 
 } // End of function TabControlWindowHandleNotifyMessage
+
+BOOL TabControlWindowIsControlWindow( int nID )
+{
+	BOOL bResult = FALSE;
+
+	// See if supplied id refers t oa control window
+	if( ( nID >= TAB_CONTROL_WINDOW_FIRST_CONTROL_WINDOW_ID ) && ( nID < g_nNextControlWindowID ) )
+	{
+		// Supplied id refers to a control window
+
+		// Update return value
+		bResult = TRUE;
+
+	} // End of supplied id refers to a control window
+
+	return bResult;
+
+} // End of function TabControlWindowIsControlWindow
 
 int TabControlWindowLoad( HWND hWndMain, LPCTSTR lpszFileName )
 {
@@ -387,7 +467,7 @@ int TabControlWindowNewTab( HWND hWndMain, LPCTSTR lpszParentFolderPath )
 	} // End of tab data parent folder path does not end with a back-slash character
 
 	// Create control window
-	tabData.hWndControl = ControlWindowCreate( hWndMain, g_hInstance, tabData.lpszParentFolderPath );
+	tabData.hWndControl = ControlWindowCreate( hWndMain, g_hInstance, g_nNextControlWindowID, tabData.lpszParentFolderPath );
 
 	// Ensure that control window was created
 	if( tabData.hWndControl )
@@ -407,6 +487,7 @@ int TabControlWindowNewTab( HWND hWndMain, LPCTSTR lpszParentFolderPath )
 
 			// Update global variables
 			g_nNumberOfTabs ++;
+			g_nNextControlWindowID ++;
 
 		} // End of successfully inserted tab control item
 

@@ -14,7 +14,9 @@
 #define CONTROL_WINDOW_STYLE													( WS_CHILD | WS_VISIBLE | LBS_NOINTEGRALHEIGHT )
 #define CONTROL_WINDOW_TEXT														NULL
 
-HWND ControlWindowCreate( HWND hWndParent, HINSTANCE hInstance, LPCTSTR lpszParentFolderPath );
+HWND ControlWindowCreate( HWND hWndParent, HINSTANCE hInstance, int nID, LPCTSTR lpszParentFolderPath );
+
+BOOL ControlWindowHandleCommandMessage( WPARAM wParam, LPARAM lParam, LPCTSTR lpszParentFolderPath, BOOL( *lpStatusFunction )( LPCTSTR lpszStatusText ) );
 
 BOOL ControlWindowMove( HWND hWndControl, HWND hWndTabControl );
 

@@ -2,12 +2,12 @@
 
 #include "ControlWindow.h"
 
-HWND ControlWindowCreate( HWND hWndParent, HINSTANCE hInstance, LPCTSTR lpszParentFolderPath )
+HWND ControlWindowCreate( HWND hWndParent, HINSTANCE hInstance, int nID, LPCTSTR lpszParentFolderPath )
 {
 	HWND hWndControl;
 
 	// Create control window
-	hWndControl = ::CreateWindowEx( CONTROL_WINDOW_EXTENDED_STYLE, CONTROL_WINDOW_CLASS_NAME, CONTROL_WINDOW_TEXT, CONTROL_WINDOW_STYLE, 100, 100, 100, 100, hWndParent, ( HMENU )NULL, hInstance, NULL );
+	hWndControl = ::CreateWindowEx( CONTROL_WINDOW_EXTENDED_STYLE, CONTROL_WINDOW_CLASS_NAME, CONTROL_WINDOW_TEXT, CONTROL_WINDOW_STYLE, 100, 100, 100, 100, hWndParent, ( HMENU )INT_PTR( nID ), hInstance, NULL );
 
 	// Ensure that control window was created
 	if( hWndControl )
@@ -25,6 +25,14 @@ HWND ControlWindowCreate( HWND hWndParent, HINSTANCE hInstance, LPCTSTR lpszPare
 	return hWndControl;
 
 } // End of function ControlWindowCreate
+
+BOOL ControlWindowHandleCommandMessage( WPARAM wParam, LPARAM lParam, LPCTSTR lpszParentFolderPath, BOOL( *lpStatusFunction )( LPCTSTR lpszStatusText ) )
+{
+	BOOL bResult = FALSE;
+
+	return bResult;
+
+} // End of function 
 
 BOOL ControlWindowMove( HWND hWndControl, HWND hWndTabControl )
 {

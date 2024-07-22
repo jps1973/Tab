@@ -20,13 +20,12 @@
 
 #define TAB_CONTROL_WINDOW_FILE_NAME											"Tabs.txt"
 
-#define TAB_CONTROL_WINDOW_FIRST_CONTROL_WINDOW_ID								( WM_USER + 10 )
-
 typedef struct
 {
 	TCITEMHEADER tcItemHeader;
 
 	HWND hWndControl;
+	LPTSTR lpszParentFolderPath;
 
 } TabData;
 
@@ -36,11 +35,9 @@ BOOL TabControlWindowCreate( HWND hWndParent, HINSTANCE hInstance );
 
 HWND TabControlWindowGetControlWindow( int nWhichTab );
 
-int TabControlWindowGetControlWindowID( int nWhichTab );
-
 BOOL TabControlWindowGetRect( LPRECT lpRect );
 
-BOOL TabControlWindowHandleNotifyMessage( WPARAM wParam, LPARAM lParam, HWND hWndMain );
+BOOL TabControlWindowHandleNotifyMessage( WPARAM wParam, LPARAM lParam, HWND hWndMain, BOOL( *lpStatusFunction )( LPCTSTR lpszStatusText ) );
 
 int TabControlWindowLoad( HWND hWndMain, LPCTSTR lpszFileName );
 
@@ -48,7 +45,7 @@ BOOL TabControlWindowMove( int nX, int nY, int nWidth, int nHeight, BOOL bRepain
 
 BOOL TabControlWindowMoveControlWindow();
 
-int TabControlWindowNewTab( HWND hWndMain, LPCTSTR lpszTitle );
+int TabControlWindowNewTab( HWND hWndMain, LPCTSTR lpszParentFolderPath );
 
 BOOL TabControlWindowSelectTab( HWND hWndMain, int nWhichTab );
 

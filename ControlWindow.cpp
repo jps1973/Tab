@@ -2,7 +2,7 @@
 
 #include "ControlWindow.h"
 
-HWND ControlWindowCreate( HWND hWndParent, HINSTANCE hInstance, LPCTSTR lpszData )
+HWND ControlWindowCreate( HWND hWndParent, HINSTANCE hInstance, LPCTSTR lpszParentFolderPath )
 {
 	HWND hWndControl;
 
@@ -17,8 +17,8 @@ HWND ControlWindowCreate( HWND hWndParent, HINSTANCE hInstance, LPCTSTR lpszData
 		// Set control window font
 		ControlWindowSetFont( hWndControl, DEFAULT_GUI_FONT );
 
-		// Add item to control window
-		SendMessage( hWndControl, LB_ADDSTRING, ( WPARAM )NULL, ( LPARAM )lpszData );
+		// Populate control window
+		ControlWindowPopulate( hWndControl,  lpszParentFolderPath );
 
 	} // End of successfully created control window
 
@@ -57,6 +57,60 @@ BOOL ControlWindowMove( HWND hWndControl, HWND hWndTabControl )
 	return bResult;
 
 } // End of function ControlWindowMove
+
+int ControlWindowPopulate( HWND hWndControl, LPCTSTR lpszParentFolderPath )
+{
+	int nResult = 0;
+
+	// Allocate string memory
+	LPTSTR lpszFullSearchPattern = new char[ STRING_LENGTH ];
+
+	// Copy parent folder path into full search pattern
+	lstrcpy( lpszFullSearchPattern, lpszParentFolderPath );
+
+	// Append all files filter onto full search pattern
+	lstrcat( lpszFullSearchPattern, ALL_FILES_FILTER );
+
+	WIN32_FIND_DATA  wfd;
+	HANDLE hFind;
+
+	// Find first item
+	hFind = FindFirstFile( lpszFullSearchPattern, &wfd );
+
+	// Ensure that first item was found
+	if( hFind != INVALID_HANDLE_VALUE )
+	{
+		// Successfully found first item
+
+		// Loop through all items
+		do
+		{
+			// See if found item is a file
+			if( !( wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) )
+			{
+				// Found item is a file
+
+				// Add found item to control window
+				SendMessage( hWndControl, LB_ADDSTRING, ( WPARAM )NULL, ( LPARAM )wfd.cFileName );
+
+				// Update return value
+				nResult ++;
+
+			} // End of found item is a file
+
+		} while( FindNextFile( hFind, &wfd ) != 0 );
+
+		// Close file find
+		FindClose( hFind );
+
+	} // End of successfully found first item
+
+	// Free string memory
+	delete [] lpszFullSearchPattern;
+
+	return nResult;
+
+} // End of function ControlWindowPopulate
 
 void ControlWindowSetFont( HWND hWndControl, int nWhichFont )
 {

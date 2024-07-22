@@ -265,7 +265,7 @@ LRESULT CALLBACK MainWndProc( HWND hWndMain, UINT uMessage, WPARAM wParam, LPARA
 				// Notify message is from tab control window
 
 				// Handle notify message from tab control window
-				if( !( TabControlWindowHandleNotifyMessage( wParam, lParam, hWndMain ) ) )
+				if( !( TabControlWindowHandleNotifyMessage( wParam, lParam, hWndMain, &StatusBarWindowSetText ) ) )
 				{
 					// Notify message was not handled by tab control window
 

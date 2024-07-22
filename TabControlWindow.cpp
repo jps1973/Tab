@@ -80,10 +80,10 @@ HWND TabControlWindowGetControlWindow( int nWhichTab )
 
 	TabData tabData;
 
-	// Clear tab control structure
+	// Clear tab data structure
 	::ZeroMemory( &tabData, sizeof( tabData ) );
 
-	// Initialise tab control structure
+	// Initialise tab data structure
 	tabData.tcItemHeader.mask = TCIF_PARAM;
 
 	// Get tab data
@@ -95,36 +95,10 @@ HWND TabControlWindowGetControlWindow( int nWhichTab )
 		hWndResult = tabData.hWndControl;
 
 	} // End of successfully got tab data
-
+	
 	return hWndResult;
 
 } // End of function TabControlWindowGetControlWindow
-
-int TabControlWindowGetControlWindowID( int nWhichTab )
-{
-	int nResult = 0;
-
-	TCITEM tcItem;
-
-	// Clear tab control structure
-	::ZeroMemory( &tcItem, sizeof( tcItem ) );
-
-	// Initialise tab control structure
-	tcItem.mask = TCIF_PARAM;
-
-	// Get tab control item
-	if( ::SendMessage( g_hWndTabControl, TCM_GETITEM, ( WPARAM )nWhichTab, ( LPARAM )&tcItem ) )
-	{
-		// Successfully got tab control item
-
-		// Update return value
-		nResult = tcItem.lParam;
-
-	} // End of successfully got tab control item
-
-	return nResult;
-
-} // End of function TabControlWindowGetControlWindowID
 
 BOOL TabControlWindowGetRect( LPRECT lpRect )
 {
@@ -133,7 +107,7 @@ BOOL TabControlWindowGetRect( LPRECT lpRect )
 
 } // End of function TabControlWindowGetRect
 
-BOOL TabControlWindowHandleNotifyMessage( WPARAM, LPARAM lParam, HWND hWndMain )
+BOOL TabControlWindowHandleNotifyMessage( WPARAM, LPARAM lParam, HWND hWndMain, BOOL( *lpStatusFunction )( LPCTSTR lpszStatusText ) )
 {
 	BOOL bResult = FALSE;
 
@@ -162,7 +136,28 @@ BOOL TabControlWindowHandleNotifyMessage( WPARAM, LPARAM lParam, HWND hWndMain )
 				// Successfully got selected tab
 
 				// Select tab
-				TabControlWindowSelectTab( hWndMain, nSelectedTab );
+				if( TabControlWindowSelectTab( hWndMain, nSelectedTab ) )
+				{
+					// Successfully selected tab
+					TabData tabData;
+
+					// Clear tab data structure
+					::ZeroMemory( &tabData, sizeof( tabData ) );
+
+					// Initialise tab data structure
+					tabData.tcItemHeader.mask = TCIF_PARAM;
+
+					// Get tab data
+					if( ::SendMessage( g_hWndTabControl, TCM_GETITEM, ( WPARAM )nSelectedTab, ( LPARAM )&tabData ) )
+					{
+						// Successfully got tab data
+
+						// Show tab path on status bar
+						( lpStatusFunction )( tabData.lpszParentFolderPath );
+
+					} // End of successfully got tab data
+
+				} // End of successfully selected tab
 
 			} // End of successfully got selected tab
 
@@ -321,11 +316,51 @@ BOOL TabControlWindowMoveControlWindow()
 
 } // End of function TabControlWindowMoveControlWindow
 
-int TabControlWindowNewTab( HWND hWndMain, LPCTSTR lpszTitle )
+int TabControlWindowNewTab( HWND hWndMain, LPCTSTR lpszParentFolderPath )
 {
 	int nResult = -1;
 
 	TabData tabData;
+	LPTSTR lpszLastBackslash;
+
+	// Allocate string memory
+	LPTSTR lpszTitle = new char[ STRING_LENGTH ];
+
+	// Find last back-slash in parent folder path
+	lpszLastBackslash = strrchr( lpszParentFolderPath, ASCII_BACK_SLASH_CHARACTER );
+
+	// See if last back-slash was found in parent folder path
+	if( lpszLastBackslash )
+	{
+		// Successfully found last back-slash in parent folder path
+
+		// See if there is text after the last back-slash
+		if( lpszLastBackslash[ sizeof( char ) ] )
+		{
+			// There is some text after the last back-slash
+
+			// Use text after the last back-slash for title
+			lstrcpy( lpszTitle, ( lpszLastBackslash + sizeof( char ) ) );
+
+		} // End of there is some text after the last back-slash
+		else
+		{
+			// There is no text after the last back-slash
+
+			// Use entire parent folder path for title
+			lstrcpy( lpszTitle, lpszParentFolderPath );
+
+		} // End of there is no text after the last back-slash
+
+	} // End of successfully found last back-slash in parent folder path
+	else
+	{
+		// Unable to find last back-slash in parent folder path
+
+		// Use entire parent folder path for title
+		lstrcpy( lpszTitle, lpszParentFolderPath );
+
+	} // End of unable to find last back-slash in parent folder path
 
 	// Clear tab data structure
 	ZeroMemory( &tabData, sizeof( tabData ) );
@@ -335,8 +370,24 @@ int TabControlWindowNewTab( HWND hWndMain, LPCTSTR lpszTitle )
 	tabData.tcItemHeader.cchTextMax	= STRING_LENGTH;
 	tabData.tcItemHeader.pszText	= ( LPTSTR )lpszTitle;
 
+	// Allocate string memory
+	tabData.lpszParentFolderPath = new char[ STRING_LENGTH ];
+
+	// Update tab data parent folder path
+	lstrcpy( tabData.lpszParentFolderPath, lpszParentFolderPath );
+
+	// Ensure that tab data parent folder path ends with a back-slash character
+	if( tabData.lpszParentFolderPath[ lstrlen( tabData.lpszParentFolderPath ) - sizeof( char ) ] != ASCII_BACK_SLASH_CHARACTER )
+	{
+		// Tab data parent folder path does not end with a back-slash character
+
+		// Append a back-slash onto tab data parent folder path
+		lstrcat( tabData.lpszParentFolderPath, ASCII_BACK_SLASH_STRING );
+
+	} // End of tab data parent folder path does not end with a back-slash character
+
 	// Create control window
-	tabData.hWndControl = ControlWindowCreate( hWndMain, g_hInstance, lpszTitle );
+	tabData.hWndControl = ControlWindowCreate( hWndMain, g_hInstance, tabData.lpszParentFolderPath );
 
 	// Ensure that control window was created
 	if( tabData.hWndControl )
@@ -361,9 +412,13 @@ int TabControlWindowNewTab( HWND hWndMain, LPCTSTR lpszTitle )
 
 	} // End of successfully created control window
 
+	// Free string memory
+	delete [] lpszTitle;
+
 	return nResult;
 
 } // End of function TabControlWindowNewTab
+
 BOOL TabControlWindowSelectTab( HWND hWndMain, int nWhichTab )
 {
 	BOOL bResult = FALSE;

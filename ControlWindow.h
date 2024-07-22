@@ -14,8 +14,10 @@
 #define CONTROL_WINDOW_STYLE													( WS_CHILD | WS_VISIBLE | LBS_NOINTEGRALHEIGHT )
 #define CONTROL_WINDOW_TEXT														NULL
 
-HWND ControlWindowCreate( HWND hWndParent, HINSTANCE hInstance, LPCTSTR lpszData );
+HWND ControlWindowCreate( HWND hWndParent, HINSTANCE hInstance, LPCTSTR lpszParentFolderPath );
 
 BOOL ControlWindowMove( HWND hWndControl, HWND hWndTabControl );
+
+int ControlWindowPopulate( HWND hWndControl, LPCTSTR lpszParentFolderPath );
 
 void ControlWindowSetFont( HWND hWndControl, int nWhichFont );

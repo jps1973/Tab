@@ -26,6 +26,69 @@ HWND ControlWindowCreate( HWND hWndParent, HINSTANCE hInstance, int nID, LPCTSTR
 
 } // End of function ControlWindowCreate
 
+BOOL ControlWindowGetFilePath( HWND hWndControl, int nWhichFile, LPCTSTR lpszParentFolderPath, LPTSTR lpszFilePath )
+{
+	BOOL bResult = FALSE;
+
+	// Allocate string memory
+	LPTSTR lpszFileName = new char[ STRING_LENGTH ];
+
+	// Get file name
+	if( SendMessage( hWndControl, LB_GETTEXT, ( WPARAM )nWhichFile, ( LPARAM )lpszFileName ) != LB_ERR )
+	{
+		// Successfully got file name
+
+		// Copy parent folder path into file path
+		lstrcpy( lpszFilePath, lpszParentFolderPath );
+
+		// Ensure that file path ends with a back-slash
+		if( lpszFilePath[ lstrlen( lpszFilePath ) - sizeof( char ) ] != ASCII_BACK_SLASH_CHARACTER )
+		{
+			// File path does not end with a back-slash
+
+			// Append s back-slash onto file path
+			lstrcat( lpszFilePath, ASCII_BACK_SLASH_STRING );
+
+		} // End of file path does not end with a back-slash
+
+		// Append file name onto file path
+		lstrcat( lpszFilePath, lpszFileName );
+
+		// Update return value
+		bResult = TRUE;
+
+	} // End of successfully got file name
+
+	// Free string memory
+	delete [] lpszFileName;
+
+	return bResult;
+
+} // End of function ControlWindowGetFilePath
+
+BOOL ControlWindowGetFilePath( HWND hWndControl, LPCTSTR lpszParentFolderPath, LPTSTR lpszFilePath )
+{
+	BOOL bResult = FALSE;
+
+	int nSelected;
+
+	// Get selected item number
+	nSelected = SendMessage( hWndControl, LB_GETCURSEL, ( WPARAM )NULL, ( LPARAM )NULL );
+
+	// Ensure that selected item number was got
+	if( nSelected >= 0 )
+	{
+		// Successfully got selected item number
+
+		// Get selected item path
+		bResult = ControlWindowGetFilePath( hWndControl, nSelected, lpszParentFolderPath, lpszFilePath );
+
+	} // End of successfully got selected item number
+
+	return bResult;
+
+} // End of function ControlWindowGetFilePath
+
 BOOL ControlWindowHandleCommandMessage( WPARAM wParam, LPARAM lParam, LPCTSTR lpszParentFolderPath, BOOL( *lpStatusFunction )( LPCTSTR lpszStatusText ) )
 {
 	BOOL bResult = FALSE;
@@ -37,35 +100,28 @@ BOOL ControlWindowHandleCommandMessage( WPARAM wParam, LPARAM lParam, LPCTSTR lp
 		{
 			// A list box selection change command
 			HWND hWndControl;
-			int nSelected;
 
 			// Get control window
 			hWndControl = ( HWND )lParam;
 
-			// Get selected item number
-			nSelected = SendMessage( hWndControl, LB_GETCURSEL, ( WPARAM )NULL, ( LPARAM )NULL );
+			// Allocate string memory
+			LPTSTR lpszFilePath = new char[ STRING_LENGTH ];
 
-			// Ensure that selected item number was got
-			if( nSelected >= 0 )
+			// Get file path
+			if( ControlWindowGetFilePath( hWndControl, lpszParentFolderPath, lpszFilePath ) )
 			{
-				// Successfully got selected item number
+				// Successfully got file path
 
-				// Allocate string memory
-				LPTSTR lpszFileName = new char[ STRING_LENGTH ];
+				// Display file path as status message
+				( lpStatusFunction )( lpszFilePath );
 
-				// Get file name
-				if( SendMessage( hWndControl, LB_GETTEXT, ( WPARAM )nSelected, ( LPARAM )lpszFileName ) != LB_ERR )
-				{
-					// Successfully got file name
+				// Update return value
+				bResult = TRUE;
 
-					( lpStatusFunction )( lpszFileName );
+			} // End of successfully got file path
 
-				} // End of successfully got file name
-
-				// Free string memory
-				delete [] lpszFileName;
-
-			} // End of successfully got selected item number
+			// Free string memory
+			delete [] lpszFilePath;
 
 			// Break out of switch
 			break;
@@ -86,7 +142,7 @@ BOOL ControlWindowHandleCommandMessage( WPARAM wParam, LPARAM lParam, LPCTSTR lp
 
 	return bResult;
 
-} // End of function 
+} // End of function ControlWindowHandleCommandMessage
 
 BOOL ControlWindowMove( HWND hWndControl, HWND hWndTabControl )
 {

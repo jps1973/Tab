@@ -16,6 +16,10 @@
 
 HWND ControlWindowCreate( HWND hWndParent, HINSTANCE hInstance, int nID, LPCTSTR lpszParentFolderPath );
 
+BOOL ControlWindowGetFilePath( HWND hWndControl, int nWhichFile, LPCTSTR lpszParentFolderPath, LPTSTR lpszFilePath );
+
+BOOL ControlWindowGetFilePath( HWND hWndControl, LPCTSTR lpszParentFolderPath, LPTSTR lpszFilePath );
+
 BOOL ControlWindowHandleCommandMessage( WPARAM wParam, LPARAM lParam, LPCTSTR lpszParentFolderPath, BOOL( *lpStatusFunction )( LPCTSTR lpszStatusText ) );
 
 BOOL ControlWindowMove( HWND hWndControl, HWND hWndTabControl );

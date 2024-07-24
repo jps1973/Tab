@@ -96,6 +96,62 @@ BOOL ControlWindowHandleCommandMessage( WPARAM wParam, LPARAM lParam, LPCTSTR lp
 	// Select command
 	switch( HIWORD( wParam ) )
 	{
+		case LBN_DBLCLK:
+		{
+			// A list box window double click notification code
+			HWND hWndControl;
+
+			// Get control window
+			hWndControl = ( HWND )lParam;
+
+			// Allocate string memory
+			LPTSTR lpszFilePath = new char[ STRING_LENGTH ];
+
+			// Get file path
+			if( ControlWindowGetFilePath( hWndControl, lpszParentFolderPath, lpszFilePath ) )
+			{
+				// Successfully got file path
+
+				// Open file
+				if( ( ( INT_PTR )ShellExecute( NULL, SHELL_EXECUTE_OPEN_COMMAND, lpszFilePath, NULL, NULL, SW_SHOWNORMAL ) ) > SHELL_EXECUTE_MAXIMUM_ERROR_VALUE )
+				{
+					// Successfully opened file
+
+					// Update return value
+					bResult = TRUE;
+
+				} // End of successfully opened file
+				else
+				{
+					// Unable to open file
+					HWND hWndParent;
+
+					// Allocate string memory
+					LPTSTR lpszErrorMessage = new char[ STRING_LENGTH ];
+
+					// Get parent window
+					hWndParent = GetParent( hWndControl );
+
+					// Format error message
+					wsprintf( lpszErrorMessage, SHELL_EXECUTE_UNABLE_TO_OPEN_ERROR_MESSAGE_FORMAT_STRING, lpszFilePath );
+
+					// Display error message
+					MessageBox( hWndParent, lpszErrorMessage, ERROR_MESSAGE_CAPTION, ( MB_OK | MB_ICONERROR ) );
+
+					// Free string memory
+					delete [] lpszErrorMessage;
+
+				} // End of unable to open file
+
+			} // End of successfully got file path
+
+			// Free string memory
+			delete [] lpszFilePath;
+
+			// Break out of switch
+			break;
+
+		} // End of a list box window double click notification code
 		case LBN_SELCHANGE:
 		{
 			// A list box selection change command

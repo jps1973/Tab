@@ -351,6 +351,9 @@ LRESULT CALLBACK MainWndProc( HWND hWndMain, UINT uMessage, WPARAM wParam, LPARA
 		{
 			// A close message
 
+			// Save tabs
+			TabControlWindowSave( TAB_CONTROL_WINDOW_FILE_NAME );
+
 			// Destroy main window
 			DestroyWindow( hWndMain );
 

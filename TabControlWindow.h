@@ -24,6 +24,8 @@
 
 #define TAB_CONTROL_WINDOW_FIRST_CONTROL_WINDOW_ID								WM_USER
 
+#define TAB_CONTROL_WINDOW_NEW_TAB_SELECT_FOLDER_TITLE							"Select Folder for New Tab"
+
 typedef struct
 {
 	TCITEMHEADER tcItemHeader;
@@ -56,6 +58,8 @@ BOOL TabControlWindowMoveControlWindow();
 int TabControlWindowNewTab( HWND hWndMain );
 
 int TabControlWindowNewTab( HWND hWndMain, LPCTSTR lpszParentFolderPath );
+
+int TabControlWindowSave( LPCTSTR lpszFileName );
 
 BOOL TabControlWindowSelectTab( HWND hWndMain, int nWhichTab );
 

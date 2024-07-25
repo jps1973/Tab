@@ -429,7 +429,7 @@ int TabControlWindowNewTab( HWND hWndMain )
 			lstrcpy( lpszParentFolderPath, tabData.lpszParentFolderPath );
 
 			// Select parent folder
-			if( SelectFolder( "Select Folder for New Tab", lpszParentFolderPath ) )
+			if( SelectFolder( TAB_CONTROL_WINDOW_NEW_TAB_SELECT_FOLDER_TITLE, lpszParentFolderPath ) )
 			{
 				// Successfully selected parent folder
 
@@ -467,10 +467,22 @@ int TabControlWindowNewTab( HWND hWndMain, LPCTSTR lpszParentFolderPath )
 	LPTSTR lpszLastBackslash;
 
 	// Allocate string memory
-	LPTSTR lpszTitle = new char[ STRING_LENGTH ];
+	LPTSTR lpszTitle				= new char[ STRING_LENGTH ];
+	LPTSTR lpszParentFolderPathCopy	= new char[ STRING_LENGTH ];
 
-	// Find last back-slash in parent folder path
-	lpszLastBackslash = strrchr( lpszParentFolderPath, ASCII_BACK_SLASH_CHARACTER );
+	// Copy parent folder path to a non-constant string
+	lstrcpy( lpszParentFolderPathCopy, lpszParentFolderPath );
+
+	// Remove back-slash characters from end of parent folder path copy
+	while( lpszParentFolderPathCopy[ lstrlen( lpszParentFolderPathCopy ) - sizeof( char ) ] == ASCII_BACK_SLASH_CHARACTER )
+	{
+		// Remove back-slash character from end of parent folder path copy
+		lpszParentFolderPathCopy[ lstrlen( lpszParentFolderPathCopy ) - sizeof( char ) ] = ( char )NULL;
+
+	}; // End of loop to remove back-slash characters from end of parent folder path copy
+
+	// Find last back-slash in parent folder path copy
+	lpszLastBackslash = strrchr( lpszParentFolderPathCopy, ASCII_BACK_SLASH_CHARACTER );
 
 	// See if last back-slash was found in parent folder path
 	if( lpszLastBackslash )
@@ -558,10 +570,72 @@ int TabControlWindowNewTab( HWND hWndMain, LPCTSTR lpszParentFolderPath )
 
 	// Free string memory
 	delete [] lpszTitle;
+	delete [] lpszParentFolderPathCopy;
 
 	return nResult;
 
 } // End of function TabControlWindowNewTab
+
+int TabControlWindowSave( LPCTSTR lpszFileName )
+{
+	int nResult = 0;
+
+	HANDLE hFile;
+
+	// Open file
+	hFile = CreateFile( lpszFileName, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL );
+
+	// Eesure that file was opened
+	if( hFile != INVALID_HANDLE_VALUE )
+	{
+		// Successfully opened file
+		int nTabCount;
+		int nWhichTab;
+		TabData tabData;
+
+		// Clear tab data structure
+		::ZeroMemory( &tabData, sizeof( tabData ) );
+
+		// Initialise tab data structure
+		tabData.tcItemHeader.mask		= TCIF_PARAM;
+
+
+		// Count tabs
+		nTabCount = ::SendMessage( g_hWndTabControl, TCM_GETITEMCOUNT, ( WPARAM )NULL, ( LPARAM )NULL );
+
+		// Loop through all tabs
+		for( nWhichTab = 0; nWhichTab < nTabCount; nWhichTab ++ )
+		{
+			// Get tab data
+			if( ::SendMessage( g_hWndTabControl, TCM_GETITEM, ( WPARAM )nWhichTab, ( LPARAM )&tabData ) )
+			{
+				// Successfully got tab data
+
+				// Write parent folder path to file
+				if( WriteFile( hFile, tabData.lpszParentFolderPath, lstrlen( tabData.lpszParentFolderPath ), NULL, NULL ) )
+				{
+					// Successfully wrote parent folder path to file
+
+					// Write new line text to file
+					WriteFile( hFile, NEW_LINE_TEXT, lstrlen( NEW_LINE_TEXT ), NULL, NULL );
+
+					// Update return value
+					nResult ++;
+
+				} // End of successfully wrote parent folder path to file
+
+			} // End of successfully got tab data
+
+		} // End of loop through all tabs
+
+		// Close file
+		CloseHandle( hFile );
+
+	} // End of successfully opened file
+
+	return nResult;
+
+} // End of function TabControlWindowSave
 
 BOOL TabControlWindowSelectTab( HWND hWndMain, int nWhichTab )
 {

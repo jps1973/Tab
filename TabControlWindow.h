@@ -10,6 +10,8 @@
 
 #include "ControlWindow.h"
 
+#include "SelectFolder.h"
+
 #define TAB_CONTROL_WINDOW_CLASS_NAME											WC_TABCONTROL
 
 #define TAB_CONTROL_WINDOW_EXTENDED_STYLE										0
@@ -50,6 +52,8 @@ int TabControlWindowLoad( HWND hWndMain, LPCTSTR lpszFileName );
 BOOL TabControlWindowMove( int nX, int nY, int nWidth, int nHeight, BOOL bRepaint = TRUE );
 
 BOOL TabControlWindowMoveControlWindow();
+
+int TabControlWindowNewTab( HWND hWndMain );
 
 int TabControlWindowNewTab( HWND hWndMain, LPCTSTR lpszParentFolderPath );
 

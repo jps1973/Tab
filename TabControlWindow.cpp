@@ -396,6 +396,69 @@ BOOL TabControlWindowMoveControlWindow()
 
 } // End of function TabControlWindowMoveControlWindow
 
+int TabControlWindowNewTab( HWND hWndMain )
+{
+	int nResult = -1;
+
+	int nSelectedTab;
+
+	// Get selected tab
+	nSelectedTab = SendMessage( g_hWndTabControl, TCM_GETCURSEL, ( WPARAM )NULL, ( LPARAM )NULL );
+
+	// Ensure that selected tab was got
+	if( nSelectedTab >= 0 )
+	{
+		// Successfully got selected tab
+		TabData tabData;
+
+		// Clear tab data structure
+		::ZeroMemory( &tabData, sizeof( tabData ) );
+
+		// Initialise tab data structure
+		tabData.tcItemHeader.mask = TCIF_PARAM;
+
+		// Get tab data
+		if( ::SendMessage( g_hWndTabControl, TCM_GETITEM, ( WPARAM )nSelectedTab, ( LPARAM )&tabData ) )
+		{
+			// Successfully got tab data
+
+			// Allocate string memory
+			LPTSTR lpszParentFolderPath = new char[ STRING_LENGTH ];
+
+			// Store (current) parent folder path
+			lstrcpy( lpszParentFolderPath, tabData.lpszParentFolderPath );
+
+			// Select parent folder
+			if( SelectFolder( "Select Folder for New Tab", lpszParentFolderPath ) )
+			{
+				// Successfully selected parent folder
+
+				// Create new tab
+				nResult = TabControlWindowNewTab( hWndMain, lpszParentFolderPath );
+
+				// Ensure that new tab was created
+				if( nResult >= 0 )
+				{
+					// Successfully created new tab
+
+					// Select new tab
+					TabControlWindowSelectTab( hWndMain, nResult );
+
+				} // End of successfully created new tab
+
+			} // End of successfully selected parent folder
+
+			// Free string memory
+			delete [] lpszParentFolderPath;
+
+		} // End of successfully got tab data
+
+	} // End of successfully got selected tab
+
+	return nResult;
+
+} // End of function TabControlWindowNewTab
+
 int TabControlWindowNewTab( HWND hWndMain, LPCTSTR lpszParentFolderPath )
 {
 	int nResult = -1;

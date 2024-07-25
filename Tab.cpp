@@ -184,6 +184,28 @@ LRESULT CALLBACK MainWndProc( HWND hWndMain, UINT uMessage, WPARAM wParam, LPARA
 			// Select command
 			switch( LOWORD( wParam ) )
 			{
+				case IDM_FILE_NEW_TAB:
+				{
+					// A file new tab command
+
+					// Create a new tab
+					TabControlWindowNewTab( hWndMain );
+
+					// Break out of switch
+					break;
+
+				} // End of a new tab command
+				case IDM_FILE_EXIT:
+				{
+					// A file exit command
+
+					// Destroy window
+					DestroyWindow( hWndMain );
+
+					// Break out of switch
+					break;
+
+				} // End of a file exit command
 				case IDM_HELP_ABOUT:
 				{
 					// A help about command

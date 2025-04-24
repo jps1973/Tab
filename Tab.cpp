@@ -1,6 +1,6 @@
-// Template.cpp
+// Tab.cpp
 
-#include "Template.h"
+#include "Tab.h"
 
 int ShowAboutMessage( HWND hWndParent )
 {
@@ -46,13 +46,13 @@ LRESULT CALLBACK MainWindowProcedure( HWND hWndMain, UINT uMsg, WPARAM wParam, L
 			// Get font
 			hFont = ( HFONT )GetStockObject( DEFAULT_GUI_FONT );
 
-			// Create list box window
-			if( ListBoxWindowCreate( hWndMain, hInstance ) )
+			// Create tab control window
+			if( TabControlWindowCreate( hWndMain, hInstance ) )
 			{
-				// Successfully created list box window
+				// Successfully created tab control window
 
-				// Set list box window font
-				ListBoxWindowSetFont( hFont );
+				// Set tab control window font
+				TabControlWindowSetFont( hFont );
 
 				// Create status bar window
 				if( StatusBarWindowCreate( hWndMain, hInstance ) )
@@ -64,7 +64,7 @@ LRESULT CALLBACK MainWindowProcedure( HWND hWndMain, UINT uMsg, WPARAM wParam, L
 
 				} // End of successfully created status bar window
 
-			} // End of successfully created list box window
+			} // End of successfully created tab control window
 
 			// Break out of switch
 			break;
@@ -77,7 +77,7 @@ LRESULT CALLBACK MainWindowProcedure( HWND hWndMain, UINT uMsg, WPARAM wParam, L
 			int nClientHeight;
 			RECT rcStatus;
 			int nStatusWindowHeight;
-			int nListBoxWindowHeight;
+			int nTabControlWindowHeight;
 
 			// Store client width and height
 			nClientWidth	= ( int )LOWORD( lParam );
@@ -91,10 +91,10 @@ LRESULT CALLBACK MainWindowProcedure( HWND hWndMain, UINT uMsg, WPARAM wParam, L
 
 			// Calculate window sizes
 			nStatusWindowHeight		= ( rcStatus.bottom - rcStatus.top );
-			nListBoxWindowHeight	= ( nClientHeight - nStatusWindowHeight );
+			nTabControlWindowHeight	= ( nClientHeight - nStatusWindowHeight );
 
-			// Move list box window
-			ListBoxWindowMove( 0, 0, nClientWidth, nListBoxWindowHeight, TRUE );
+			// Move tab control window
+			TabControlWindowMove( 0, 0, nClientWidth, nTabControlWindowHeight, TRUE );
 
 			// Break out of switch
 			break;
@@ -104,8 +104,8 @@ LRESULT CALLBACK MainWindowProcedure( HWND hWndMain, UINT uMsg, WPARAM wParam, L
 		{
 			// An activate message
 
-			// Focus on list box window
-			ListBoxWindowSetFocus();
+			// Focus on tab control window
+			TabControlWindowSetFocus();
 
 			// Break out of switch
 			break;
@@ -160,8 +160,8 @@ LRESULT CALLBACK MainWindowProcedure( HWND hWndMain, UINT uMsg, WPARAM wParam, L
 					{
 						// Successfully got file path
 
-						// Add file path to list box window
-						ListBoxWindowAddString( lpszFilePath );
+						// Add file path to tab control window
+						//TabControlWindowAddString( lpszFilePath );
 
 					} // End of successfully got file path
 
@@ -209,30 +209,30 @@ LRESULT CALLBACK MainWindowProcedure( HWND hWndMain, UINT uMsg, WPARAM wParam, L
 				{
 					// Default command
 
-					// See if command message is from list box window
-					if( IsListBoxWindow( ( HWND )lParam ) )
+					// See if command message is from tab control window
+					if( IsTabControlWindow( ( HWND )lParam ) )
 					{
-						// Command message is from list box window
+						// Command message is from tab control window
 
-						// Handle command message from list box window
-						if( !( ListBoxWindowHandleCommandMessage( wParam, lParam, &StatusBarWindowSetText ) ) )
+						// Handle command message from tab control window
+						if( !( TabControlWindowHandleCommandMessage( wParam, lParam, &StatusBarWindowSetText ) ) )
 						{
-							// Command message was not handled from list box window
+							// Command message was not handled from tab control window
 
 							// Call default procedure
 							lr = DefWindowProc( hWndMain, uMsg, wParam, lParam );
 
-						} // End of command message was not handled from list box window
+						} // End of command message was not handled from tab control window
 
-					} // End of command message is from list box window
+					} // End of command message is from tab control window
 					else
 					{
-						// Command message is not from list box window
+						// Command message is not from tab control window
 
 						// Call default procedure
 						lr = DefWindowProc( hWndMain, uMsg, wParam, lParam );
 
-					} // End of command message is not from list box window
+					} // End of command message is not from tab control window
 
 					// Break out of switch
 					break;
@@ -289,30 +289,30 @@ LRESULT CALLBACK MainWindowProcedure( HWND hWndMain, UINT uMsg, WPARAM wParam, L
 			// Get notify message handler
 			lpNmHdr = ( LPNMHDR )lParam;
 
-			// See if notify message is from list box window
-			if( IsListBoxWindow( lpNmHdr->hwndFrom ) )
+			// See if notify message is from tab control window
+			if( IsTabControlWindow( lpNmHdr->hwndFrom ) )
 			{
-				// Notify message is from list box window
+				// Notify message is from tab control window
 
-				// Handle notify message from list box window
-				if( !( ListBoxWindowHandleNotifyMessage( wParam, lParam, &StatusBarWindowSetText ) ) )
+				// Handle notify message from tab control window
+				if( !( TabControlWindowHandleNotifyMessage( wParam, lParam, &StatusBarWindowSetText ) ) )
 				{
-					// Notify message was not handled from list box window
+					// Notify message was not handled from tab control window
 
 					// Call default procedure
 					lr = DefWindowProc( hWndMain, uMsg, wParam, lParam );
 
-				} // End of notify message was not handled from list box window
+				} // End of notify message was not handled from tab control window
 
-			} // End of notify message is from list box window
+			} // End of notify message is from tab control window
 			else
 			{
-				// Notify message is not from list box window
+				// Notify message is not from tab control window
 
 				// Call default procedure
 				lr = DefWindowProc( hWndMain, uMsg, wParam, lParam );
 
-			} // End of notify message is not from list box window
+			} // End of notify message is not from tab control window
 
 
 			// Break out of switch
@@ -453,8 +453,8 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow )
 					// Terminate argument
 					lpszArgument[ nSizeNeeded ] = ( char )NULL;
 
-					// Add argument to list box window
-					ListBoxWindowAddString( lpszArgument );
+					// Add argument to tab control window
+					//TabControlWindowAddString( lpszArgument );
 
 				}; // End of loop through arguments
 

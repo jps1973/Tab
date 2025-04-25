@@ -209,30 +209,8 @@ LRESULT CALLBACK MainWindowProcedure( HWND hWndMain, UINT uMsg, WPARAM wParam, L
 				{
 					// Default command
 
-					// See if command message is from tab control window
-					if( IsTabControlWindow( ( HWND )lParam ) )
-					{
-						// Command message is from tab control window
-
-						// Handle command message from tab control window
-						if( !( TabControlWindowHandleCommandMessage( wParam, lParam, &StatusBarWindowSetText ) ) )
-						{
-							// Command message was not handled from tab control window
-
-							// Call default procedure
-							lr = DefWindowProc( hWndMain, uMsg, wParam, lParam );
-
-						} // End of command message was not handled from tab control window
-
-					} // End of command message is from tab control window
-					else
-					{
-						// Command message is not from tab control window
-
-						// Call default procedure
-						lr = DefWindowProc( hWndMain, uMsg, wParam, lParam );
-
-					} // End of command message is not from tab control window
+					// Call default procedure
+					lr = DefWindowProc( hWndMain, uMsg, wParam, lParam );
 
 					// Break out of switch
 					break;
@@ -414,6 +392,7 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow )
 			HMENU hMenuSystem;
 			LPWSTR *lpszArgumentList;
 			int nArgumentCount;
+			int nSelectedItem;
 
 			// Get system menu
 			hMenuSystem = GetSystemMenu( hWndMain, FALSE );
@@ -468,6 +447,19 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow )
 
 			// Update main window
 			UpdateWindow( hWndMain );
+
+			// Get selected item
+			nSelectedItem = TabControlWindowGetSelectedItem();
+
+			// Ensure that selected item was got
+			if( nSelectedItem >= 0 )
+			{
+				// Successfully got selected item
+
+				// Action selected item
+				TabControlWindowOnItemSelected( nSelectedItem, &StatusBarWindowSetText );
+
+			} // End of successfully got selected item
 
 			// Message loop
 			while( GetMessage( &msg, NULL, 0, 0 ) > 0 )

@@ -34,13 +34,17 @@ BOOL IsTabControlWindow( HWND hWnd );
 
 BOOL TabControlWindowCreate( HWND hWndParent, HINSTANCE hInstance );
 
+BOOL TabControlWindowGetItemText( int nWhichItem, LPTSTR lpszItemText );
+
 BOOL TabControlWindowGetRect( LPRECT lpRect );
 
-BOOL TabControlWindowHandleCommandMessage( WPARAM wParam, LPARAM lParam, BOOL( *lpStatusFunction )( LPCTSTR lpszItemText ) );
+int TabControlWindowGetSelectedItem();
 
 BOOL TabControlWindowHandleNotifyMessage( WPARAM wParam, LPARAM lParam, BOOL( *lpStatusFunction )( LPCTSTR lpszItemText ) );
 
 BOOL TabControlWindowMove( int nX, int nY, int nWidth, int nHeight, BOOL bRepaint = TRUE );
+
+BOOL TabControlWindowOnItemSelected( int nWhichItem, BOOL( *lpStatusFunction )( LPCTSTR lpszItemText ) );
 
 HWND TabControlWindowSetFocus();
 

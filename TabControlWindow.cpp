@@ -53,6 +53,34 @@ BOOL TabControlWindowCreate( HWND hWndParent, HINSTANCE hInstance )
 
 } // End of function TabControlWindowCreate
 
+BOOL TabControlWindowGetItemText( int nWhichItem, LPTSTR lpszItemText )
+{
+	BOOL bResult = FALSE;
+
+	TCITEM tcItem;
+
+	// Clear tab control item structure
+	ZeroMemory( &tcItem, sizeof( tcItem ) );
+
+	// Initialise tab control item structure
+	tcItem.mask			= TCIF_TEXT;
+	tcItem.cchTextMax	= STRING_LENGTH;
+	tcItem.pszText		= lpszItemText;
+
+	// Get tab control item
+	if( SendMessage( g_hWndTabControl, TCM_GETITEM, ( WPARAM )nWhichItem, ( LPARAM )&tcItem ) )
+	{
+		// Successfully got tab control item
+
+		// Update return value
+		bResult = TRUE;
+
+	} // End of successfully got tab control item
+
+	return bResult;
+
+} // End of function TabControlWindowGetItemText
+
 BOOL TabControlWindowGetRect( LPRECT lpRect )
 {
 	// Get tab control window rect
@@ -60,31 +88,14 @@ BOOL TabControlWindowGetRect( LPRECT lpRect )
 
 } // End of function TabControlWindowGetRect
 
-BOOL TabControlWindowHandleCommandMessage( WPARAM wParam, LPARAM, BOOL( *lpStatusFunction )( LPCTSTR lpszItemText ) )
+int TabControlWindowGetSelectedItem()
 {
-	BOOL bResult = FALSE;
+	// Get selected item
+	return SendMessage( g_hWndTabControl, TCM_GETCURSEL, ( WPARAM )NULL, ( LPARAM )NULL );
 
-	// Select tab control window notification code
-	switch( HIWORD( wParam ) )
-	{
-		default:
-		{
-			// Default notification code
+} // End of function TabControlWindowGetSelectedItem
 
-			// No need to do anything here, just continue with default result
-
-			// Break out of switch
-			break;
-
-		} // End of default notification code
-
-	}; // End of selection for tab control window notification code
-
-	return bResult;
-
-} // End of function TabControlWindowHandleCommandMessage
-
-BOOL TabControlWindowHandleNotifyMessage( WPARAM wParam, LPARAM lParam, BOOL( *lpStatusFunction )( LPCTSTR lpszItemText ) )
+BOOL TabControlWindowHandleNotifyMessage( WPARAM, LPARAM lParam, BOOL( *lpStatusFunction )( LPCTSTR lpszItemText ) )
 {
 	BOOL bResult = FALSE;
 
@@ -96,6 +107,36 @@ BOOL TabControlWindowHandleNotifyMessage( WPARAM wParam, LPARAM lParam, BOOL( *l
 	// Select tab control window notification code
 	switch( lpNmhdr->code )
 	{
+		case TCN_SELCHANGING:
+		{
+			// A selection changing notification code
+
+			// Break out of switch
+			break;
+
+		}// End of a selection changing notification code
+		case TCN_SELCHANGE:
+		{
+			// A selection change notification code
+			int nSelectedItem;
+
+			// Get selected item
+			nSelectedItem = SendMessage( g_hWndTabControl, TCM_GETCURSEL, ( WPARAM )NULL, ( LPARAM )NULL );
+
+			// Ensure that selected item was got
+			if( nSelectedItem >= 0 )
+			{
+				// Successfully got selected item
+
+				// Call item selected function
+				bResult = TabControlWindowOnItemSelected( nSelectedItem, lpStatusFunction );
+
+			} // End of successfully got selected item
+
+			// Break out of switch
+			break;
+
+		}// End of a selection change notification code
 		default:
 		{
 			// Default notification code
@@ -119,6 +160,33 @@ BOOL TabControlWindowMove( int nX, int nY, int nWidth, int nHeight, BOOL bRepain
 	return MoveWindow( g_hWndTabControl, nX, nY, nWidth, nHeight, bRepaint );
 
 } // End of function TabControlWindowMove
+
+BOOL TabControlWindowOnItemSelected( int nWhichItem, BOOL( *lpStatusFunction )( LPCTSTR lpszItemText ) )
+{
+	BOOL bResult = FALSE;
+
+	// Allocate string memory
+	LPTSTR lpszItemText = new char[ STRING_LENGTH + sizeof( char ) ];
+
+	// Get item text
+	if( TabControlWindowGetItemText( nWhichItem, lpszItemText ) )
+	{
+		// Successfully got item text
+
+		// Show item text on status bar window
+		( *lpStatusFunction )( lpszItemText );
+
+		// Update return value
+		bResult = TRUE;
+
+	} // End of successfully got item text
+
+	// Free string memory
+	delete [] lpszItemText;
+
+	return bResult;
+
+} // End of function TabControlWindowOnItemSelected
 
 HWND TabControlWindowSetFocus()
 {

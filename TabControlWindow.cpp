@@ -12,6 +12,31 @@ BOOL IsTabControlWindow( HWND hWnd )
 
 } // End of function IsTabControlWindow
 
+int TabControlWindowAddItem( LPCTSTR lpszItemText )
+{
+	int nResult = -1;
+
+	TCITEM tcItem;
+	int nItemCount;
+
+	// Clear tab control item structure
+	ZeroMemory( &tcItem, sizeof( tcItem ) );
+
+	// Initialise tab control item structure
+	tcItem.mask			= TCIF_TEXT;
+	tcItem.pszText		= ( LPTSTR )lpszItemText;
+	tcItem.cchTextMax	= STRING_LENGTH;
+
+	// Count items on tab
+	nItemCount = SendMessage( g_hWndTabControl, TCM_GETITEMCOUNT, ( WPARAM )NULL, ( LPARAM )NULL );
+
+	// Add tab
+	nResult = SendMessage( g_hWndTabControl, TCM_INSERTITEM, ( WPARAM )nItemCount, ( LPARAM )&tcItem );
+
+	return nResult;
+
+} // End of function TabControlWindowAddItem
+
 BOOL TabControlWindowCreate( HWND hWndParent, HINSTANCE hInstance )
 {
 	BOOL bResult = FALSE;
@@ -23,26 +48,6 @@ BOOL TabControlWindowCreate( HWND hWndParent, HINSTANCE hInstance )
 	if( g_hWndTabControl )
 	{
 		// Successfully created tab control window
-		TCITEM tcItem;
-		int nWhichDay;
-		LPCTSTR lpszTitles [] = TAB_CONTROL_WINDOW_TITLES;
-
-		// Clear tab control item structure
-		ZeroMemory( &tcItem, sizeof( tcItem ) );
-
-		// Initialise tab control item structure
-		tcItem.mask = TCIF_TEXT;
-
-		// Loop through tabs
-		for ( nWhichDay = 0; nWhichDay < TAB_CONTROL_WINDOW_NUMBER_OF_TABS; nWhichDay ++)
-		{
-			// Update tab control item structure for tab
-			tcItem.pszText = ( LPTSTR )( lpszTitles[ nWhichDay ] );
-
-			// Add tab
-			SendMessage( g_hWndTabControl, TCM_INSERTITEM, ( WPARAM )nWhichDay, ( LPARAM )&tcItem );
-
-		} // End of loop through tabs
 
 		// Update return value
 		bResult = TRUE;

@@ -448,6 +448,12 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow )
 			// Update main window
 			UpdateWindow( hWndMain );
 
+			// Add tabs to tab control window
+			TabControlWindowAddItem( "1234567890" );
+			TabControlWindowAddItem( "qwertyuiop" );
+			TabControlWindowAddItem( "asdfghjkl" );
+			TabControlWindowAddItem( "zxcvbnm" );
+
 			// Get selected item
 			nSelectedItem = TabControlWindowGetSelectedItem();
 

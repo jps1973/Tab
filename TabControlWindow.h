@@ -14,23 +14,9 @@
 #define TAB_CONTROL_WINDOW_STYLE												( WS_CHILD | WS_CLIPSIBLINGS | WS_VISIBLE )
 #define TAB_CONTROL_WINDOW_TEXT													NULL
 
-#define TAB_CONTROL_WINDOW_TITLES												{ "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" }
-
-typedef enum TabIDs
-{
-	TAB_CONTROL_WINDOW_MONDAY_TAB_ID,
-	TAB_CONTROL_WINDOW_TUESDAY_TAB_ID,
-	TAB_CONTROL_WINDOW_WEDNESDAY_TAB_ID,
-	TAB_CONTROL_WINDOW_THURSDAY_TAB_ID,
-	TAB_CONTROL_WINDOW_FRIDAY_TAB_ID,
-	TAB_CONTROL_WINDOW_SATURDAY_TAB_ID,
-	TAB_CONTROL_WINDOW_SUNDAY_TAB_ID,
-
-	TAB_CONTROL_WINDOW_NUMBER_OF_TABS
-
-} TAB_IDS;
-
 BOOL IsTabControlWindow( HWND hWnd );
+
+int TabControlWindowAddItem( LPCTSTR lpszItemText );
 
 BOOL TabControlWindowCreate( HWND hWndParent, HINSTANCE hInstance );
 

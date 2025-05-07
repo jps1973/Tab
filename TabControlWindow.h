@@ -14,6 +14,14 @@
 #define TAB_CONTROL_WINDOW_STYLE												( WS_CHILD | WS_CLIPSIBLINGS | WS_VISIBLE )
 #define TAB_CONTROL_WINDOW_TEXT													NULL
 
+typedef struct
+{
+	TCITEMHEADER tcItemHeader;
+
+	char cData[ STRING_LENGTH + sizeof( char ) ];
+
+} TAB_CONTROL_WINDOW_DATA;
+
 BOOL IsTabControlWindow( HWND hWnd );
 
 int TabControlWindowAddItem( LPCTSTR lpszItemText );

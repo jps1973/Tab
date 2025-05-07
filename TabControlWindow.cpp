@@ -16,22 +16,23 @@ int TabControlWindowAddItem( LPCTSTR lpszItemText )
 {
 	int nResult = -1;
 
-	TCITEM tcItem;
+	TAB_CONTROL_WINDOW_DATA tcwData;
 	int nItemCount;
 
-	// Clear tab control item structure
-	ZeroMemory( &tcItem, sizeof( tcItem ) );
+	// Clear tab control window data structure
+	ZeroMemory( &tcwData, sizeof( tcwData ) );
 
-	// Initialise tab control item structure
-	tcItem.mask			= TCIF_TEXT;
-	tcItem.pszText		= ( LPTSTR )lpszItemText;
-	tcItem.cchTextMax	= STRING_LENGTH;
+	// Initialise tab control window data structure
+	tcwData.tcItemHeader.mask		= ( TCIF_TEXT | TCIF_PARAM );
+	tcwData.tcItemHeader.cchTextMax	= STRING_LENGTH;
+	tcwData.tcItemHeader.pszText	= ( LPTSTR )lpszItemText;
+	wsprintf( tcwData.cData, "Data for tab %s.", lpszItemText );
 
 	// Count items on tab
 	nItemCount = SendMessage( g_hWndTabControl, TCM_GETITEMCOUNT, ( WPARAM )NULL, ( LPARAM )NULL );
 
 	// Add tab
-	nResult = SendMessage( g_hWndTabControl, TCM_INSERTITEM, ( WPARAM )nItemCount, ( LPARAM )&tcItem );
+	nResult = SendMessage( g_hWndTabControl, TCM_INSERTITEM, ( WPARAM )nItemCount, ( LPARAM )( LPTCITEMHEADER )( &tcwData ) );
 
 	return nResult;
 
@@ -48,9 +49,20 @@ BOOL TabControlWindowCreate( HWND hWndParent, HINSTANCE hInstance )
 	if( g_hWndTabControl )
 	{
 		// Successfully created tab control window
+		int nExtraBytes;
 
-		// Update return value
-		bResult = TRUE;
+		// Calculate extra bytes
+		nExtraBytes = ( sizeof( TAB_CONTROL_WINDOW_DATA ) - sizeof( TCITEMHEADER ) );
+
+		// Allocate extra memory for tab data
+		if( SendMessage( g_hWndTabControl, TCM_SETITEMEXTRA, ( WPARAM )nExtraBytes, ( LPARAM )NULL ) )
+		{
+			// Successfully allocated extra memory for tab data
+
+			// Update return value
+			bResult = TRUE;
+
+		} // End of successfully allocated extra memory for tab data
 
 	} // End of successfully created tab control window
 
@@ -170,21 +182,31 @@ BOOL TabControlWindowOnItemSelected( int nWhichItem, BOOL( *lpStatusFunction )( 
 {
 	BOOL bResult = FALSE;
 
+	TAB_CONTROL_WINDOW_DATA tcwData;
+
 	// Allocate string memory
 	LPTSTR lpszItemText = new char[ STRING_LENGTH + sizeof( char ) ];
 
-	// Get item text
-	if( TabControlWindowGetItemText( nWhichItem, lpszItemText ) )
+	// Clear tab control window data structure
+	ZeroMemory( &tcwData, sizeof( tcwData ) );
+
+	// Initialise tab control window data structure
+	tcwData.tcItemHeader.mask		= ( TCIF_TEXT | TCIF_PARAM );
+	tcwData.tcItemHeader.cchTextMax	= STRING_LENGTH;
+	tcwData.tcItemHeader.pszText	= ( LPTSTR )lpszItemText;
+
+	// Get tab control item
+	if( SendMessage( g_hWndTabControl, TCM_GETITEM, ( WPARAM )nWhichItem, ( LPARAM )( LPTCITEMHEADER )( &tcwData ) ) )
 	{
-		// Successfully got item text
+		// Successfully got tab control item
 
 		// Show item text on status bar window
-		( *lpStatusFunction )( lpszItemText );
+		( *lpStatusFunction )( tcwData.cData );
 
 		// Update return value
 		bResult = TRUE;
 
-	} // End of successfully got item text
+	} // End of successfully got tab control item
 
 	// Free string memory
 	delete [] lpszItemText;

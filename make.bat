@@ -8,6 +8,7 @@ g++ -mwindows -m64 -static -Wall -Wextra ^
  ^
  Tab.cpp ^
  ^
+ ControlWindow.cpp ^
  StatusBarWindow.cpp ^
  TabControlWindow.cpp ^
  ^

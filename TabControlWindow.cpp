@@ -4,6 +4,7 @@
 
 // Global variables
 static HWND g_hWndTabControl;
+static HWND g_hWndActiveControl;
 
 BOOL IsTabControlWindow( HWND hWnd )
 {
@@ -12,27 +13,49 @@ BOOL IsTabControlWindow( HWND hWnd )
 
 } // End of function IsTabControlWindow
 
-int TabControlWindowAddItem( LPCTSTR lpszItemText )
+int TabControlWindowAddItem( HINSTANCE hInstance, LPCTSTR lpszItemText )
 {
 	int nResult = -1;
 
-	TAB_CONTROL_WINDOW_DATA tcwData;
-	int nItemCount;
+	HWND hWndControl;
 
-	// Clear tab control window data structure
-	ZeroMemory( &tcwData, sizeof( tcwData ) );
+	// Create control window
+	hWndControl = ControlWindowCreate( g_hWndTabControl, hInstance );
 
-	// Initialise tab control window data structure
-	tcwData.tcItemHeader.mask		= ( TCIF_TEXT | TCIF_PARAM );
-	tcwData.tcItemHeader.cchTextMax	= STRING_LENGTH;
-	tcwData.tcItemHeader.pszText	= ( LPTSTR )lpszItemText;
-	wsprintf( tcwData.cData, "Data for tab %s.", lpszItemText );
+	// Ensure that control window was created
+	if( hWndControl )
+	{
+		// Successfully created control window
+		TAB_CONTROL_WINDOW_DATA tcwData;
+		int nItemCount;
+		HFONT hFont;
 
-	// Count items on tab
-	nItemCount = SendMessage( g_hWndTabControl, TCM_GETITEMCOUNT, ( WPARAM )NULL, ( LPARAM )NULL );
+		// Clear tab control window data structure
+		ZeroMemory( &tcwData, sizeof( tcwData ) );
 
-	// Add tab
-	nResult = SendMessage( g_hWndTabControl, TCM_INSERTITEM, ( WPARAM )nItemCount, ( LPARAM )( LPTCITEMHEADER )( &tcwData ) );
+		// Initialise tab control window data structure
+		tcwData.tcItemHeader.mask		= ( TCIF_TEXT | TCIF_PARAM );
+		tcwData.hWndControl				= hWndControl;
+		tcwData.tcItemHeader.cchTextMax	= STRING_LENGTH;
+		tcwData.tcItemHeader.pszText	= ( LPTSTR )lpszItemText;
+		wsprintf( tcwData.cData, "Data for tab %s.", lpszItemText );
+
+		// Get font
+		hFont = ( HFONT )GetStockObject( DEFAULT_GUI_FONT );
+
+		// Set control window font
+		SendMessage( hWndControl, WM_SETFONT, ( WPARAM )hFont, ( LPARAM )TRUE );
+
+		// Add text to control window
+		SendMessage( hWndControl, LB_ADDSTRING, ( WPARAM )NULL, ( LPARAM )lpszItemText );
+
+		// Count items on tab
+		nItemCount = SendMessage( g_hWndTabControl, TCM_GETITEMCOUNT, ( WPARAM )NULL, ( LPARAM )NULL );
+
+		// Add tab
+		nResult = SendMessage( g_hWndTabControl, TCM_INSERTITEM, ( WPARAM )nItemCount, ( LPARAM )( LPTCITEMHEADER )( &tcwData ) );
+
+	} // End of successfully created control window
 
 	return nResult;
 
@@ -58,6 +81,9 @@ BOOL TabControlWindowCreate( HWND hWndParent, HINSTANCE hInstance )
 		if( SendMessage( g_hWndTabControl, TCM_SETITEMEXTRA, ( WPARAM )nExtraBytes, ( LPARAM )NULL ) )
 		{
 			// Successfully allocated extra memory for tab data
+
+			// Clear active control window
+			g_hWndActiveControl = NULL;
 
 			// Update return value
 			bResult = TRUE;
@@ -173,10 +199,53 @@ BOOL TabControlWindowHandleNotifyMessage( WPARAM, LPARAM lParam, BOOL( *lpStatus
 
 BOOL TabControlWindowMove( int nX, int nY, int nWidth, int nHeight, BOOL bRepaint )
 {
+	BOOL bResult = FALSE;
+
 	// Move tab control window
-	return MoveWindow( g_hWndTabControl, nX, nY, nWidth, nHeight, bRepaint );
+	if( MoveWindow( g_hWndTabControl, nX, nY, nWidth, nHeight, bRepaint ) )
+	{
+		// Successfully moved tab control window
+
+		// Move control window
+		if( TabControlWindowMoveControlWindow() )
+		{
+			// Successfully moved control window
+
+			// Update return value
+			bResult = TRUE;
+
+		} // End of successfully moved control window
+
+	} // End of successfully moved tab control window
+
+	return bResult;
 
 } // End of function TabControlWindowMove
+
+BOOL TabControlWindowMoveControlWindow()
+{
+	BOOL bResult = FALSE;
+
+	RECT rc;
+	int nControlWindowWidth;
+	int nControlWindowHeight;
+
+	// Get tab control window size
+	GetClientRect( g_hWndTabControl, &rc );
+
+	// Adjust rect for control window
+	SendMessage( g_hWndTabControl, TCM_ADJUSTRECT, ( WPARAM )FALSE, ( LPARAM )&rc );
+
+	// Calculate control window size
+	nControlWindowWidth		= ( rc.right - rc.left );
+	nControlWindowHeight	= ( rc.bottom - rc.top );
+
+	// Move control window
+	bResult = MoveWindow( g_hWndActiveControl, rc.left, rc.top, nControlWindowWidth, nControlWindowHeight, TRUE );
+
+	return bResult;
+
+} // End of function TabControlWindowMoveControlWindow
 
 BOOL TabControlWindowOnItemSelected( int nWhichItem, BOOL( *lpStatusFunction )( LPCTSTR lpszItemText ) )
 {
@@ -199,6 +268,25 @@ BOOL TabControlWindowOnItemSelected( int nWhichItem, BOOL( *lpStatusFunction )( 
 	if( SendMessage( g_hWndTabControl, TCM_GETITEM, ( WPARAM )nWhichItem, ( LPARAM )( LPTCITEMHEADER )( &tcwData ) ) )
 	{
 		// Successfully got tab control item
+
+		// See if active control window is valid
+		if( g_hWndActiveControl )
+		{
+			// Active control window is valid
+
+			// Hide active control window
+			ShowWindow( g_hWndActiveControl, SW_HIDE );
+
+		} // End of active control window is valid
+
+		// Update active control window
+		g_hWndActiveControl = tcwData.hWndControl;
+
+		// Move active control window
+		TabControlWindowMoveControlWindow();
+
+		// Show active control window
+		ShowWindow( g_hWndActiveControl, SW_SHOW );
 
 		// Show item text on status bar window
 		( *lpStatusFunction )( tcwData.cData );

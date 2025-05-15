@@ -8,6 +8,8 @@
 #include "Ascii.h"
 #include "Common.h"
 
+#include "ControlWindow.h"
+
 #define TAB_CONTROL_WINDOW_CLASS_NAME											WC_TABCONTROL
 
 #define TAB_CONTROL_WINDOW_EXTENDED_STYLE										0
@@ -18,13 +20,14 @@ typedef struct
 {
 	TCITEMHEADER tcItemHeader;
 
+	HWND hWndControl;
 	char cData[ STRING_LENGTH + sizeof( char ) ];
 
 } TAB_CONTROL_WINDOW_DATA;
 
 BOOL IsTabControlWindow( HWND hWnd );
 
-int TabControlWindowAddItem( LPCTSTR lpszItemText );
+int TabControlWindowAddItem( HINSTANCE hInstance, LPCTSTR lpszItemText );
 
 BOOL TabControlWindowCreate( HWND hWndParent, HINSTANCE hInstance );
 
@@ -37,6 +40,8 @@ int TabControlWindowGetSelectedItem();
 BOOL TabControlWindowHandleNotifyMessage( WPARAM wParam, LPARAM lParam, BOOL( *lpStatusFunction )( LPCTSTR lpszItemText ) );
 
 BOOL TabControlWindowMove( int nX, int nY, int nWidth, int nHeight, BOOL bRepaint = TRUE );
+
+BOOL TabControlWindowMoveControlWindow();
 
 BOOL TabControlWindowOnItemSelected( int nWhichItem, BOOL( *lpStatusFunction )( LPCTSTR lpszItemText ) );
 

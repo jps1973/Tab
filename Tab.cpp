@@ -317,10 +317,29 @@ LRESULT CALLBACK MainWindowProcedure( HWND hWndMain, UINT uMsg, WPARAM wParam, L
 			// A close message
 
 			// Save tabs
-			TabControlWindowSave( TABS_FILE_NAME );
+			if( TabControlWindowSave( TABS_FILE_NAME ) )
+			{
+				// Successfully saved tabs
 
-			// Destroy main window
-			DestroyWindow( hWndMain );
+				// Destroy main window
+				DestroyWindow( hWndMain );
+
+			} // End of successfully saved tabs
+			else
+			{
+				// Unable to save tabs
+
+				// Ensure that user is ok to close
+				if( MessageBox( hWndMain, TAB_CONTROL_WINDOW_UNABLE_TO_SAVE_TABS_WARNING_MESSAGE, WARNING_MESSAGE_CAPTION, ( MB_YESNO | MB_DEFBUTTON2 | MB_ICONWARNING ) ) == IDYES )
+				{
+					// User is ok to close
+
+					// Destroy main window
+					DestroyWindow( hWndMain );
+
+				} // End of user is ok to close
+
+			} // End of unable to save tabs
 
 			// Break out of switch
 			break;

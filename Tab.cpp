@@ -316,6 +316,9 @@ LRESULT CALLBACK MainWindowProcedure( HWND hWndMain, UINT uMsg, WPARAM wParam, L
 		{
 			// A close message
 
+			// Save tabs
+			TabControlWindowSave( TABS_FILE_NAME );
+
 			// Destroy main window
 			DestroyWindow( hWndMain );
 
@@ -448,11 +451,8 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow )
 			// Update main window
 			UpdateWindow( hWndMain );
 
-			// Add tabs to tab control window
-			TabControlWindowAddItem( hInstance, "1234567890" );
-			TabControlWindowAddItem( hInstance, "qwertyuiop" );
-			TabControlWindowAddItem( hInstance, "asdfghjkl" );
-			TabControlWindowAddItem( hInstance, "zxcvbnm" );
+			// Load tabs
+			TabControlWindowLoad( TABS_FILE_NAME, hInstance );
 
 			// Get selected item
 			nSelectedItem = TabControlWindowGetSelectedItem();

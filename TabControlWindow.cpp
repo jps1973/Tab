@@ -27,7 +27,7 @@ int TabControlWindowAddItem( HINSTANCE hInstance, LPCTSTR lpszItemText )
 	{
 		// Successfully created control window
 		TAB_CONTROL_WINDOW_DATA tcwData;
-		int nItemCount;
+		int nTabCount;
 		HFONT hFont;
 
 		// Clear tab control window data structure
@@ -49,11 +49,11 @@ int TabControlWindowAddItem( HINSTANCE hInstance, LPCTSTR lpszItemText )
 		// Add text to control window
 		SendMessage( hWndControl, LB_ADDSTRING, ( WPARAM )NULL, ( LPARAM )lpszItemText );
 
-		// Count items on tab
-		nItemCount = SendMessage( g_hWndTabControl, TCM_GETITEMCOUNT, ( WPARAM )NULL, ( LPARAM )NULL );
+		// Count tabs
+		nTabCount = SendMessage( g_hWndTabControl, TCM_GETITEMCOUNT, ( WPARAM )NULL, ( LPARAM )NULL );
 
 		// Add tab
-		nResult = SendMessage( g_hWndTabControl, TCM_INSERTITEM, ( WPARAM )nItemCount, ( LPARAM )( LPTCITEMHEADER )( &tcwData ) );
+		nResult = SendMessage( g_hWndTabControl, TCM_INSERTITEM, ( WPARAM )nTabCount, ( LPARAM )( LPTCITEMHEADER )( &tcwData ) );
 
 	} // End of successfully created control window
 
@@ -197,6 +197,82 @@ BOOL TabControlWindowHandleNotifyMessage( WPARAM, LPARAM lParam, BOOL( *lpStatus
 
 } // End of function TabControlWindowHandleNotifyMessage
 
+int TabControlWindowLoad( LPCTSTR lpszFileName, HINSTANCE hInstance )
+{
+	int nResult = 0;
+
+	HANDLE hFile;
+
+	// Open file
+	hFile = CreateFile( lpszFileName, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL );
+
+	// Ensure that file was opened
+	if( hFile != INVALID_HANDLE_VALUE )
+	{
+		// Successfully opened file
+		DWORD dwFileSize;
+
+		// Get file size
+		dwFileSize = GetFileSize( hFile, NULL );
+
+		// Ensure that file size was got
+		if( dwFileSize != INVALID_FILE_SIZE )
+		{
+			// Successfully got file size
+
+			// Allocate string memory
+			LPSTR lpszFileText = new char[ dwFileSize + sizeof( char ) ];
+
+			// Read file
+			if( ReadFile( hFile, lpszFileText, dwFileSize, NULL, NULL ) )
+			{
+				// Successfully read file
+				LPTSTR lpszTab;
+
+				// Terminate file text
+				lpszFileText[ dwFileSize ] = ( char )NULL;
+
+				// Get first tab
+				lpszTab = strtok( lpszFileText, NEW_LINE_TEXT );
+
+				// Loop through all tabs
+				while( lpszTab )
+				{
+					// Add tab
+					if( TabControlWindowAddItem( hInstance, lpszTab ) >= 0 )
+					{
+						// Successfully added tab
+
+						// Update return value
+						nResult ++;
+
+						// Get next tab
+						lpszTab = strtok( NULL, NEW_LINE_TEXT );
+
+					} // End of successfully added tab
+					else
+					{
+						// Unable to add tab
+
+						// Force exit from loop
+						lpszTab = NULL;
+
+					} // End of unable to add tab
+
+				}; // End of loop through all tabs
+
+			} // End of successfully read file
+
+		} // End of successfully got file size
+
+		// Close file
+		CloseHandle(hFile);
+
+	} // End of successfully opened file
+	return nResult;
+
+} // End of function TabControlWindowLoad
+
 BOOL TabControlWindowMove( int nX, int nY, int nWidth, int nHeight, BOOL bRepaint )
 {
 	BOOL bResult = FALSE;
@@ -302,6 +378,90 @@ BOOL TabControlWindowOnItemSelected( int nWhichItem, BOOL( *lpStatusFunction )( 
 	return bResult;
 
 } // End of function TabControlWindowOnItemSelected
+
+int TabControlWindowSave( LPCTSTR lpszFileName )
+{
+	int nResult = 0;
+
+	HANDLE hFile;
+
+	// Create file
+	hFile = CreateFile( lpszFileName, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL );
+
+	// Ensure that file was created
+	if( hFile != INVALID_HANDLE_VALUE )
+	{
+		// Successfully created file
+		int nTabCount;
+		int nWhichTab;
+		TAB_CONTROL_WINDOW_DATA tcwData;
+
+		// Allocate string memory
+		LPTSTR lpszTabName = new char[ STRING_LENGTH + sizeof( char ) ];
+
+		// Clear tab control window data structure
+		ZeroMemory( &tcwData, sizeof( tcwData ) );
+
+		// Initialise tab control window data structure
+		tcwData.tcItemHeader.mask		= TCIF_TEXT;
+		tcwData.tcItemHeader.cchTextMax	= STRING_LENGTH;
+		tcwData.tcItemHeader.pszText	= ( LPTSTR )lpszTabName;
+
+		// Count tabs
+		nTabCount = SendMessage( g_hWndTabControl, TCM_GETITEMCOUNT, ( WPARAM )NULL, ( LPARAM )NULL );
+
+		// Loop through tabs
+		for( nWhichTab = 0; nWhichTab < nTabCount; nWhichTab ++ )
+		{
+			// Get tab control item
+			if( SendMessage( g_hWndTabControl, TCM_GETITEM, ( WPARAM )nWhichTab, ( LPARAM )( LPTCITEMHEADER )( &tcwData ) ) )
+			{
+				// Successfully got tab control item
+
+				// Write tab name to file
+				if( WriteFile( hFile, lpszTabName, lstrlen( lpszTabName ), NULL, NULL ) )
+				{
+					// Successfully wrote tab name to file
+
+					// Write new line text to file
+					WriteFile( hFile, NEW_LINE_TEXT, lstrlen( NEW_LINE_TEXT ), NULL, NULL );
+
+					// Update return value
+					nResult ++;
+
+				} // End of successfully wrote tab name to file
+				else
+				{
+					// Unable to write tab name to file
+
+					// Force exit from loop
+					nWhichTab = nTabCount;
+
+				} // End of unable to write tab name to file
+
+			} // End of successfully got tab control item
+			else
+			{
+				// Unable to get tab control item
+
+				// Force exit from loop
+				nWhichTab = nTabCount;
+
+			} // End of unable to get tab control item
+
+		}; // End of loop through all tabs
+
+		// Free string memory
+		delete [] lpszTabName;
+
+		// Close file
+		CloseHandle( hFile );
+
+	} // End of successfully created file
+
+	return nResult;
+
+} // End of function TabControlWindowSave
 
 HWND TabControlWindowSetFocus()
 {

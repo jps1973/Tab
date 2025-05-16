@@ -37,5 +37,7 @@
 																				"\r\n"								\
 																				"April 2025"
 
+#define TABS_FILE_NAME															"Tabs.txt"
+
 #define UNABLE_TO_REGISTER_MAIN_WINDOW_CLASS_ERROR_MESSAGE						"Unable to Register Main Window Class"
 #define UNABLE_TO_CREATE_MAIN_WINDOW_ERROR_MESSAGE								"Unable to Create Main Window"

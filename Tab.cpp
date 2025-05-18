@@ -198,12 +198,23 @@ LRESULT CALLBACK MainWindowProcedure( HWND hWndMain, UINT uMsg, WPARAM wParam, L
 				{
 					// A tab new command
 					HINSTANCE hInstance;
+					int nWhichTab;
 
 					// Get instance
 					hInstance = GetModuleHandle( NULL );
 
 					// Create new tab
-					TabControlWindowAddTab( hInstance );
+					nWhichTab = TabControlWindowAddTab( hInstance );
+
+					// Ensure that tab was created
+					if( nWhichTab >= 0 )
+					{
+						// Successfully created new tab
+
+						// Select new tab
+						TabControlWindowSelectTab( nWhichTab, &StatusBarWindowSetText );
+
+					} // End of successfully created new tab
 
 					// Break out of switch
 					break;

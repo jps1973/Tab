@@ -5,7 +5,7 @@
 // Global variables
 static HWND g_hWndTabControl;
 static HWND g_hWndActiveControl;
-static int g_nNextTabNimber;
+static int g_nNextTabNumber;
 
 BOOL IsTabControlWindow( HWND hWnd )
 {
@@ -22,7 +22,18 @@ int TabControlWindowAddTab( HINSTANCE hInstance )
 	LPTSTR lpszTabName = new char[ STRING_LENGTH + sizeof( char ) ];
 
 	// Format tab name
-	wsprintf( lpszTabName, TAB_CONTROL_WINDOW_NEW_TAB_NAME_FORMAT_STRING, g_nNextTabNimber );
+	wsprintf( lpszTabName, TAB_CONTROL_WINDOW_NEW_TAB_NAME_FORMAT_STRING, g_nNextTabNumber );
+
+	// Ensure that tab name does not already exist
+	while( TabControlWindowDoesTabExist( lpszTabName ) )
+	{
+		// Update next tab number
+		g_nNextTabNumber ++;
+
+		// Format tab name
+		wsprintf( lpszTabName, TAB_CONTROL_WINDOW_NEW_TAB_NAME_FORMAT_STRING, g_nNextTabNumber );
+
+	}; // End of loop to ensure that tab name does not already exist
 
 	// Add tab
 	nResult = TabControlWindowAddTab( hInstance, lpszTabName );
@@ -33,7 +44,7 @@ int TabControlWindowAddTab( HINSTANCE hInstance )
 		// Successfully added tab
 
 		// Update next tab number
-		g_nNextTabNimber ++;
+		g_nNextTabNumber ++;
 
 	} // End of successfully added tab
 
@@ -124,7 +135,7 @@ BOOL TabControlWindowCreate( HWND hWndParent, HINSTANCE hInstance )
 			g_hWndActiveControl = NULL;
 
 			// Initialise next tab number
-			g_nNextTabNimber = TAB_CONTROL_WINDOW_FIRST_NEW_TAB_NUMBER;
+			g_nNextTabNumber = TAB_CONTROL_WINDOW_FIRST_NEW_TAB_NUMBER;
 
 			// Update return value
 			bResult = TRUE;
@@ -143,6 +154,68 @@ BOOL TabControlWindowDeleteTab( int nWhichTab )
 	return SendMessage( g_hWndTabControl, TCM_DELETEITEM, ( WPARAM )nWhichTab, ( LPARAM )NULL );
 
 } // End of function TabControlWindowDeleteTab
+
+BOOL TabControlWindowDoesTabExist( LPCTSTR lpszRequiredTabName )
+{
+	BOOL bResult = FALSE;
+
+	TAB_CONTROL_WINDOW_DATA tcwData;
+	int nTabCount;
+	int nWhichTab;
+
+	// Allocate string memory
+	LPTSTR lpszCurrentTabName = new char[ STRING_LENGTH + sizeof( char ) ];
+
+	// Clear tab control window data structure
+	ZeroMemory( &tcwData, sizeof( tcwData ) );
+
+	// Initialise tab control window data structure
+	tcwData.tcItemHeader.mask		= TCIF_TEXT;
+	tcwData.tcItemHeader.cchTextMax	= STRING_LENGTH;
+	tcwData.tcItemHeader.pszText	= ( LPTSTR )lpszCurrentTabName;
+
+	// Count tabs
+	nTabCount = SendMessage( g_hWndTabControl, TCM_GETITEMCOUNT, ( WPARAM )NULL, ( LPARAM )NULL );
+
+	// Loop through tabs
+	for( nWhichTab = 0; nWhichTab < nTabCount; nWhichTab ++ )
+	{
+		// Get tab control item
+		if( SendMessage( g_hWndTabControl, TCM_GETITEM, ( WPARAM )nWhichTab, ( LPARAM )( LPTCITEMHEADER )( &tcwData ) ) )
+		{
+			// Successfully got tab control item
+
+			// See if tab has the required name
+			if( lstrcmpi( lpszCurrentTabName, lpszRequiredTabName ) == 0 )
+			{
+				// Tab has the required name
+
+				// Update return value
+				bResult = TRUE;
+
+				// Force exit from loop
+				nWhichTab = nTabCount;
+
+			} // End of tab has the required name
+
+		} // End of successfully got tab control item
+		else
+		{
+			// Unable to get tab control item
+
+			// Force exit from loop
+			nWhichTab = nTabCount;
+
+		} // End of unable to get tab control item
+
+	}; // End of loop through all tabs
+
+	// Free string memory
+	delete [] lpszCurrentTabName;
+
+	return bResult;
+
+} // End of function TabControlWindowDoesTabExist
 
 BOOL TabControlWindowGetRect( LPRECT lpRect )
 {

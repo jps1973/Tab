@@ -1,8 +1,5 @@
 First
+Second
 Third
 Fourth
-New Tab
-Tab 1
 Tab 2
-Tab 3
-Tab 1

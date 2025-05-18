@@ -42,6 +42,8 @@ BOOL TabControlWindowCreate( HWND hWndParent, HINSTANCE hInstance );
 
 BOOL TabControlWindowDeleteTab( int nWhichTab );
 
+BOOL TabControlWindowDoesTabExist( LPCTSTR lpszRequiredTabName );
+
 BOOL TabControlWindowGetRect( LPRECT lpRect );
 
 int TabControlWindowGetSelectedItem();

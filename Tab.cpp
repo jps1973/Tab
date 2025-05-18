@@ -194,6 +194,61 @@ LRESULT CALLBACK MainWindowProcedure( HWND hWndMain, UINT uMsg, WPARAM wParam, L
 					break;
 
 				} // End of a file exit command
+				case IDM_TAB_NEW:
+				{
+					// A tab new command
+					HINSTANCE hInstance;
+
+					// Get instance
+					hInstance = GetModuleHandle( NULL );
+
+					// Create new tab
+					TabControlWindowAddTab( hInstance );
+
+					// Break out of switch
+					break;
+
+				} // End of a tab new command
+				case IDM_TAB_REMOVE:
+				{
+					// A tab remove command
+					int nTabCount;
+
+					// Count tabs
+					nTabCount = TabControlWindowCountTabs();
+
+					// Ensure that there is at least one tab
+					if( nTabCount > 1 )
+					{
+						// There is at least one tab
+						int nSelectedTab;
+
+						// Get selected tab
+						nSelectedTab = TabControlWindowGetSelectedItem();
+
+						// Ensure that selected tab was got
+						if( nSelectedTab >= 0 )
+						{
+							// Successfully got selected tab
+
+							// Delete selected tab
+							if( TabControlWindowDeleteTab( nSelectedTab ) )
+							{
+								// Successfully deleted selected tab
+
+								// Select first tab
+								TabControlWindowSelectTab( 0, &StatusBarWindowSetText );
+
+							} // End of successfully deleted selected tab
+
+						} // End of successfully got selected tab
+
+					} // End of there is at least one tab
+
+					// Break out of switch
+					break;
+
+				} // End of a tab remove command
 				case IDM_HELP_ABOUT:
 				{
 					// A help about command
@@ -482,7 +537,7 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow )
 				// Successfully got selected item
 
 				// Action selected item
-				TabControlWindowOnItemSelected( nSelectedItem, &StatusBarWindowSetText );
+				TabControlWindowOnTabSelected( nSelectedItem, &StatusBarWindowSetText );
 
 			} // End of successfully got selected item
 

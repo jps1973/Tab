@@ -5,6 +5,7 @@
 // Global variables
 static HWND g_hWndTabControl;
 static HWND g_hWndActiveControl;
+static int g_nNextTabNimber;
 
 BOOL IsTabControlWindow( HWND hWnd )
 {
@@ -13,7 +14,37 @@ BOOL IsTabControlWindow( HWND hWnd )
 
 } // End of function IsTabControlWindow
 
-int TabControlWindowAddItem( HINSTANCE hInstance, LPCTSTR lpszItemText )
+int TabControlWindowAddTab( HINSTANCE hInstance )
+{
+	int nResult = -1;
+
+	// Allocate string memory
+	LPTSTR lpszTabName = new char[ STRING_LENGTH + sizeof( char ) ];
+
+	// Format tab name
+	wsprintf( lpszTabName, TAB_CONTROL_WINDOW_NEW_TAB_NAME_FORMAT_STRING, g_nNextTabNimber );
+
+	// Add tab
+	nResult = TabControlWindowAddTab( hInstance, lpszTabName );
+
+	// Ensure that tab was added
+	if( nResult >= 0 )
+	{
+		// Successfully added tab
+
+		// Update next tab number
+		g_nNextTabNimber ++;
+
+	} // End of successfully added tab
+
+	// Free string memory
+	delete [] lpszTabName;
+
+	return nResult;
+
+} // End of function TabControlWindowAddTab
+
+int TabControlWindowAddTab( HINSTANCE hInstance, LPCTSTR lpszTabName )
 {
 	int nResult = -1;
 
@@ -37,8 +68,8 @@ int TabControlWindowAddItem( HINSTANCE hInstance, LPCTSTR lpszItemText )
 		tcwData.tcItemHeader.mask		= ( TCIF_TEXT | TCIF_PARAM );
 		tcwData.hWndControl				= hWndControl;
 		tcwData.tcItemHeader.cchTextMax	= STRING_LENGTH;
-		tcwData.tcItemHeader.pszText	= ( LPTSTR )lpszItemText;
-		wsprintf( tcwData.cData, "Data for tab %s.", lpszItemText );
+		tcwData.tcItemHeader.pszText	= ( LPTSTR )lpszTabName;
+		wsprintf( tcwData.cData, "Data for tab %s.", lpszTabName );
 
 		// Get font
 		hFont = ( HFONT )GetStockObject( DEFAULT_GUI_FONT );
@@ -47,7 +78,7 @@ int TabControlWindowAddItem( HINSTANCE hInstance, LPCTSTR lpszItemText )
 		SendMessage( hWndControl, WM_SETFONT, ( WPARAM )hFont, ( LPARAM )TRUE );
 
 		// Add text to control window
-		SendMessage( hWndControl, LB_ADDSTRING, ( WPARAM )NULL, ( LPARAM )lpszItemText );
+		SendMessage( hWndControl, LB_ADDSTRING, ( WPARAM )NULL, ( LPARAM )lpszTabName );
 
 		// Count tabs
 		nTabCount = SendMessage( g_hWndTabControl, TCM_GETITEMCOUNT, ( WPARAM )NULL, ( LPARAM )NULL );
@@ -59,7 +90,14 @@ int TabControlWindowAddItem( HINSTANCE hInstance, LPCTSTR lpszItemText )
 
 	return nResult;
 
-} // End of function TabControlWindowAddItem
+} // End of function TabControlWindowAddTab
+
+int TabControlWindowCountTabs()
+{
+	// Count tabs
+	return SendMessage( g_hWndTabControl, TCM_GETITEMCOUNT, ( WPARAM )NULL, ( LPARAM )NULL );
+
+} // End of function TabControlWindowCountTabs
 
 BOOL TabControlWindowCreate( HWND hWndParent, HINSTANCE hInstance )
 {
@@ -85,6 +123,9 @@ BOOL TabControlWindowCreate( HWND hWndParent, HINSTANCE hInstance )
 			// Clear active control window
 			g_hWndActiveControl = NULL;
 
+			// Initialise next tab number
+			g_nNextTabNimber = TAB_CONTROL_WINDOW_FIRST_NEW_TAB_NUMBER;
+
 			// Update return value
 			bResult = TRUE;
 
@@ -96,33 +137,12 @@ BOOL TabControlWindowCreate( HWND hWndParent, HINSTANCE hInstance )
 
 } // End of function TabControlWindowCreate
 
-BOOL TabControlWindowGetItemText( int nWhichItem, LPTSTR lpszItemText )
+BOOL TabControlWindowDeleteTab( int nWhichTab )
 {
-	BOOL bResult = FALSE;
+	// Delete tab
+	return SendMessage( g_hWndTabControl, TCM_DELETEITEM, ( WPARAM )nWhichTab, ( LPARAM )NULL );
 
-	TCITEM tcItem;
-
-	// Clear tab control item structure
-	ZeroMemory( &tcItem, sizeof( tcItem ) );
-
-	// Initialise tab control item structure
-	tcItem.mask			= TCIF_TEXT;
-	tcItem.cchTextMax	= STRING_LENGTH;
-	tcItem.pszText		= lpszItemText;
-
-	// Get tab control item
-	if( SendMessage( g_hWndTabControl, TCM_GETITEM, ( WPARAM )nWhichItem, ( LPARAM )&tcItem ) )
-	{
-		// Successfully got tab control item
-
-		// Update return value
-		bResult = TRUE;
-
-	} // End of successfully got tab control item
-
-	return bResult;
-
-} // End of function TabControlWindowGetItemText
+} // End of function TabControlWindowDeleteTab
 
 BOOL TabControlWindowGetRect( LPRECT lpRect )
 {
@@ -138,7 +158,35 @@ int TabControlWindowGetSelectedItem()
 
 } // End of function TabControlWindowGetSelectedItem
 
-BOOL TabControlWindowHandleNotifyMessage( WPARAM, LPARAM lParam, BOOL( *lpStatusFunction )( LPCTSTR lpszItemText ) )
+BOOL TabControlWindowGetTabName( int nWhichItem, LPTSTR lpszTabName )
+{
+	BOOL bResult = FALSE;
+
+	TCITEM tcItem;
+
+	// Clear tab control item structure
+	ZeroMemory( &tcItem, sizeof( tcItem ) );
+
+	// Initialise tab control item structure
+	tcItem.mask			= TCIF_TEXT;
+	tcItem.cchTextMax	= STRING_LENGTH;
+	tcItem.pszText		= lpszTabName;
+
+	// Get tab control item
+	if( SendMessage( g_hWndTabControl, TCM_GETITEM, ( WPARAM )nWhichItem, ( LPARAM )&tcItem ) )
+	{
+		// Successfully got tab control item
+
+		// Update return value
+		bResult = TRUE;
+
+	} // End of successfully got tab control item
+
+	return bResult;
+
+} // End of function TabControlWindowGetTabName
+
+BOOL TabControlWindowHandleNotifyMessage( WPARAM, LPARAM lParam, BOOL( *lpStatusFunction )( LPCTSTR lpszTabName ) )
 {
 	BOOL bResult = FALSE;
 
@@ -161,20 +209,20 @@ BOOL TabControlWindowHandleNotifyMessage( WPARAM, LPARAM lParam, BOOL( *lpStatus
 		case TCN_SELCHANGE:
 		{
 			// A selection change notification code
-			int nSelectedItem;
+			int nSelectedTab;
 
-			// Get selected item
-			nSelectedItem = SendMessage( g_hWndTabControl, TCM_GETCURSEL, ( WPARAM )NULL, ( LPARAM )NULL );
+			// Get selected tab
+			nSelectedTab = SendMessage( g_hWndTabControl, TCM_GETCURSEL, ( WPARAM )NULL, ( LPARAM )NULL );
 
-			// Ensure that selected item was got
-			if( nSelectedItem >= 0 )
+			// Ensure that selected tab was got
+			if( nSelectedTab >= 0 )
 			{
-				// Successfully got selected item
+				// Successfully got selected tab
 
-				// Call item selected function
-				bResult = TabControlWindowOnItemSelected( nSelectedItem, lpStatusFunction );
+				// Action selected tab
+				bResult = TabControlWindowOnTabSelected( nSelectedTab, lpStatusFunction );
 
-			} // End of successfully got selected item
+			} // End of successfully got selected tab
 
 			// Break out of switch
 			break;
@@ -239,7 +287,7 @@ int TabControlWindowLoad( LPCTSTR lpszFileName, HINSTANCE hInstance )
 				while( lpszTab )
 				{
 					// Add tab
-					if( TabControlWindowAddItem( hInstance, lpszTab ) >= 0 )
+					if( TabControlWindowAddTab( hInstance, lpszTab ) >= 0 )
 					{
 						// Successfully added tab
 
@@ -323,14 +371,14 @@ BOOL TabControlWindowMoveControlWindow()
 
 } // End of function TabControlWindowMoveControlWindow
 
-BOOL TabControlWindowOnItemSelected( int nWhichItem, BOOL( *lpStatusFunction )( LPCTSTR lpszItemText ) )
+BOOL TabControlWindowOnTabSelected( int nWhichItem, BOOL( *lpStatusFunction )( LPCTSTR lpszTabName ) )
 {
 	BOOL bResult = FALSE;
 
 	TAB_CONTROL_WINDOW_DATA tcwData;
 
 	// Allocate string memory
-	LPTSTR lpszItemText = new char[ STRING_LENGTH + sizeof( char ) ];
+	LPTSTR lpszTabName = new char[ STRING_LENGTH + sizeof( char ) ];
 
 	// Clear tab control window data structure
 	ZeroMemory( &tcwData, sizeof( tcwData ) );
@@ -338,7 +386,7 @@ BOOL TabControlWindowOnItemSelected( int nWhichItem, BOOL( *lpStatusFunction )( 
 	// Initialise tab control window data structure
 	tcwData.tcItemHeader.mask		= ( TCIF_TEXT | TCIF_PARAM );
 	tcwData.tcItemHeader.cchTextMax	= STRING_LENGTH;
-	tcwData.tcItemHeader.pszText	= ( LPTSTR )lpszItemText;
+	tcwData.tcItemHeader.pszText	= ( LPTSTR )lpszTabName;
 
 	// Get tab control item
 	if( SendMessage( g_hWndTabControl, TCM_GETITEM, ( WPARAM )nWhichItem, ( LPARAM )( LPTCITEMHEADER )( &tcwData ) ) )
@@ -373,11 +421,11 @@ BOOL TabControlWindowOnItemSelected( int nWhichItem, BOOL( *lpStatusFunction )( 
 	} // End of successfully got tab control item
 
 	// Free string memory
-	delete [] lpszItemText;
+	delete [] lpszTabName;
 
 	return bResult;
 
-} // End of function TabControlWindowOnItemSelected
+} // End of function TabControlWindowOnTabSelected
 
 int TabControlWindowSave( LPCTSTR lpszFileName )
 {
@@ -462,6 +510,39 @@ int TabControlWindowSave( LPCTSTR lpszFileName )
 	return nResult;
 
 } // End of function TabControlWindowSave
+
+BOOL TabControlWindowSelectTab( int nWhichTab, BOOL( *lpStatusFunction )( LPCTSTR lpszTabName ) )
+{
+	BOOL bResult = FALSE;
+
+	int nSelectedTab;
+
+	// Select tab
+	SendMessage( g_hWndTabControl, TCM_SETCURSEL, ( WPARAM )nWhichTab, ( LPARAM )NULL );
+	// Note that the above message returns the index of the previously selected tab
+
+	// Get selected tab
+	nSelectedTab = SendMessage( g_hWndTabControl, TCM_GETCURSEL, ( WPARAM )NULL, ( LPARAM )NULL );
+
+	// Ensure that the required tab is selected
+	if( nWhichTab == nSelectedTab )
+	{
+		// The required tab is selected
+
+		// Action selected tab
+		if( TabControlWindowOnTabSelected( nWhichTab, lpStatusFunction ) )
+		{
+			// Successfully actioned selected tab
+
+			// Update return value
+			bResult = TRUE;
+
+		} // End of successfully actioned selected tab
+
+	} // End of the required tab is selected
+	return bResult;
+
+} // End of function TabControlWindowSelectTab
 
 HWND TabControlWindowSetFocus()
 {

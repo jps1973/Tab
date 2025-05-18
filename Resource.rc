@@ -16,6 +16,11 @@ IDR_MAIN_MENU MENU
 	BEGIN
 		MENUITEM "E&xit",														IDM_FILE_EXIT
 	END
+	POPUP "&Tab"
+	BEGIN
+		MENUITEM "&New",														IDM_TAB_NEW
+		MENUITEM "&Remove",														IDM_TAB_REMOVE
+	END
 	POPUP "&Help"
 	BEGIN
 		MENUITEM "&About",														IDM_HELP_ABOUT

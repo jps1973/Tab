@@ -16,6 +16,9 @@
 #define TAB_CONTROL_WINDOW_STYLE												( WS_CHILD | WS_CLIPSIBLINGS | WS_VISIBLE )
 #define TAB_CONTROL_WINDOW_TEXT													NULL
 
+#define TAB_CONTROL_WINDOW_FIRST_NEW_TAB_NUMBER									1
+#define TAB_CONTROL_WINDOW_NEW_TAB_NAME_FORMAT_STRING							"Tab %d"
+
 #define TAB_CONTROL_WINDOW_UNABLE_TO_SAVE_TABS_WARNING_MESSAGE					"Unable to Save Tabs.\r\n\r\nDo you still want to close?"
 
 typedef struct
@@ -29,17 +32,23 @@ typedef struct
 
 BOOL IsTabControlWindow( HWND hWnd );
 
-int TabControlWindowAddItem( HINSTANCE hInstance, LPCTSTR lpszItemText );
+int TabControlWindowAddTab( HINSTANCE hInstance );
+
+int TabControlWindowAddTab( HINSTANCE hInstance, LPCTSTR lpszTabName );
+
+int TabControlWindowCountTabs();
 
 BOOL TabControlWindowCreate( HWND hWndParent, HINSTANCE hInstance );
 
-BOOL TabControlWindowGetItemText( int nWhichItem, LPTSTR lpszItemText );
+BOOL TabControlWindowDeleteTab( int nWhichTab );
 
 BOOL TabControlWindowGetRect( LPRECT lpRect );
 
 int TabControlWindowGetSelectedItem();
 
-BOOL TabControlWindowHandleNotifyMessage( WPARAM wParam, LPARAM lParam, BOOL( *lpStatusFunction )( LPCTSTR lpszItemText ) );
+BOOL TabControlWindowGetTabName( int nWhichItem, LPTSTR lpszTabName );
+
+BOOL TabControlWindowHandleNotifyMessage( WPARAM wParam, LPARAM lParam, BOOL( *lpStatusFunction )( LPCTSTR lpszTabName ) );
 
 int TabControlWindowLoad( LPCTSTR lpszFileName, HINSTANCE hInstance );
 
@@ -47,9 +56,11 @@ BOOL TabControlWindowMove( int nX, int nY, int nWidth, int nHeight, BOOL bRepain
 
 BOOL TabControlWindowMoveControlWindow();
 
-BOOL TabControlWindowOnItemSelected( int nWhichItem, BOOL( *lpStatusFunction )( LPCTSTR lpszItemText ) );
+BOOL TabControlWindowOnTabSelected( int nWhichItem, BOOL( *lpStatusFunction )( LPCTSTR lpszTabName ) );
 
 int TabControlWindowSave( LPCTSTR lpszFileName );
+
+BOOL TabControlWindowSelectTab( int nWhichTab, BOOL( *lpStatusFunction )( LPCTSTR lpszTabName ) );
 
 HWND TabControlWindowSetFocus();
 
